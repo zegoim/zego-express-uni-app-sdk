@@ -1,0 +1,359 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 50;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		86F76E60255A8A6B00E390FD /* ZegoExpressEngine.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 86F76E5E255A8A6700E390FD /* ZegoExpressEngine.framework */; };
+		86F76E65255A8AC200E390FD /* ZegoExpressUniAppEngine.h in Headers */ = {isa = PBXBuildFile; fileRef = 86F76E63255A8AC200E390FD /* ZegoExpressUniAppEngine.h */; };
+		86F76E66255A8AC200E390FD /* ZegoExpressUniAppEngine.m in Sources */ = {isa = PBXBuildFile; fileRef = 86F76E64255A8AC200E390FD /* ZegoExpressUniAppEngine.m */; };
+		86F76FD4255B85CA00E390FD /* ZegoExpressCanvas.h in Headers */ = {isa = PBXBuildFile; fileRef = 86F76FD2255B85CA00E390FD /* ZegoExpressCanvas.h */; };
+		86F76FD5255B85CA00E390FD /* ZegoExpressCanvas.m in Sources */ = {isa = PBXBuildFile; fileRef = 86F76FD3255B85CA00E390FD /* ZegoExpressCanvas.m */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		86F76E35255A832A00E390FD /* ZegoExpressUniAppSDK.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = ZegoExpressUniAppSDK.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		86F76E39255A832A00E390FD /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		86F76E5E255A8A6700E390FD /* ZegoExpressEngine.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = ZegoExpressEngine.framework; sourceTree = "<group>"; };
+		86F76E63255A8AC200E390FD /* ZegoExpressUniAppEngine.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ZegoExpressUniAppEngine.h; sourceTree = "<group>"; };
+		86F76E64255A8AC200E390FD /* ZegoExpressUniAppEngine.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ZegoExpressUniAppEngine.m; sourceTree = "<group>"; };
+		86F76FD2255B85CA00E390FD /* ZegoExpressCanvas.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ZegoExpressCanvas.h; sourceTree = "<group>"; };
+		86F76FD3255B85CA00E390FD /* ZegoExpressCanvas.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ZegoExpressCanvas.m; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		86F76E32255A832A00E390FD /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				86F76E60255A8A6B00E390FD /* ZegoExpressEngine.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		86F76E2B255A832A00E390FD = {
+			isa = PBXGroup;
+			children = (
+				86F76E37255A832A00E390FD /* ZegoExpressUniAppSDK */,
+				86F76E36255A832A00E390FD /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		86F76E36255A832A00E390FD /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				86F76E35255A832A00E390FD /* ZegoExpressUniAppSDK.framework */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		86F76E37255A832A00E390FD /* ZegoExpressUniAppSDK */ = {
+			isa = PBXGroup;
+			children = (
+				86F76E5E255A8A6700E390FD /* ZegoExpressEngine.framework */,
+				86F76E39255A832A00E390FD /* Info.plist */,
+				86F76E63255A8AC200E390FD /* ZegoExpressUniAppEngine.h */,
+				86F76E64255A8AC200E390FD /* ZegoExpressUniAppEngine.m */,
+				86F76FD2255B85CA00E390FD /* ZegoExpressCanvas.h */,
+				86F76FD3255B85CA00E390FD /* ZegoExpressCanvas.m */,
+			);
+			path = ZegoExpressUniAppSDK;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXHeadersBuildPhase section */
+		86F76E30255A832A00E390FD /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				86F76FD4255B85CA00E390FD /* ZegoExpressCanvas.h in Headers */,
+				86F76E65255A8AC200E390FD /* ZegoExpressUniAppEngine.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
+
+/* Begin PBXNativeTarget section */
+		86F76E34255A832A00E390FD /* ZegoExpressUniAppSDK */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 86F76E3D255A832A00E390FD /* Build configuration list for PBXNativeTarget "ZegoExpressUniAppSDK" */;
+			buildPhases = (
+				86F76E30255A832A00E390FD /* Headers */,
+				86F76E31255A832A00E390FD /* Sources */,
+				86F76E32255A832A00E390FD /* Frameworks */,
+				86F76E33255A832A00E390FD /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = ZegoExpressUniAppSDK;
+			productName = ZegoExpressUniAppSDK;
+			productReference = 86F76E35255A832A00E390FD /* ZegoExpressUniAppSDK.framework */;
+			productType = "com.apple.product-type.framework";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		86F76E2C255A832A00E390FD /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 1200;
+				TargetAttributes = {
+					86F76E34255A832A00E390FD = {
+						CreatedOnToolsVersion = 12.0;
+					};
+				};
+			};
+			buildConfigurationList = 86F76E2F255A832A00E390FD /* Build configuration list for PBXProject "ZegoExpressUniAppSDK" */;
+			compatibilityVersion = "Xcode 9.3";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 86F76E2B255A832A00E390FD;
+			productRefGroup = 86F76E36255A832A00E390FD /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				86F76E34255A832A00E390FD /* ZegoExpressUniAppSDK */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		86F76E33255A832A00E390FD /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		86F76E31255A832A00E390FD /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				86F76E66255A8AC200E390FD /* ZegoExpressUniAppEngine.m in Sources */,
+				86F76FD5255B85CA00E390FD /* ZegoExpressCanvas.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		86F76E3B255A832A00E390FD /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Debug;
+		};
+		86F76E3C255A832A00E390FD /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				VALIDATE_PRODUCT = YES;
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Release;
+		};
+		86F76E3E255A832A00E390FD /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = B82BHJ5H89;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/ZegoExpressUniAppSDK",
+				);
+				HEADER_SEARCH_PATHS = "\"$(SRCROOT)/../../SDK/inc\"/**";
+				INFOPLIST_FILE = ZegoExpressUniAppSDK/Info.plist;
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MACH_O_TYPE = staticlib;
+				PRODUCT_BUNDLE_IDENTIFIER = com.zego.ZegoExpressUniAppSDK;
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SKIP_INSTALL = YES;
+				SUPPORTS_MACCATALYST = NO;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		86F76E3F255A832A00E390FD /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = B82BHJ5H89;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/ZegoExpressUniAppSDK",
+				);
+				HEADER_SEARCH_PATHS = "\"$(SRCROOT)/../../SDK/inc\"/**";
+				INFOPLIST_FILE = ZegoExpressUniAppSDK/Info.plist;
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MACH_O_TYPE = staticlib;
+				PRODUCT_BUNDLE_IDENTIFIER = com.zego.ZegoExpressUniAppSDK;
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SKIP_INSTALL = YES;
+				SUPPORTS_MACCATALYST = NO;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		86F76E2F255A832A00E390FD /* Build configuration list for PBXProject "ZegoExpressUniAppSDK" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				86F76E3B255A832A00E390FD /* Debug */,
+				86F76E3C255A832A00E390FD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		86F76E3D255A832A00E390FD /* Build configuration list for PBXNativeTarget "ZegoExpressUniAppSDK" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				86F76E3E255A832A00E390FD /* Debug */,
+				86F76E3F255A832A00E390FD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 86F76E2C255A832A00E390FD /* Project object */;
+}
