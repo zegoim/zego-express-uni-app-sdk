@@ -1,5 +1,5 @@
 //
-//  ZegoExpressCanvas.h
+//  ZegoView.h
 //  ZegoExpressUniAppSDK
 //
 //  Created by zego on 2020/11/11.
@@ -10,7 +10,7 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface ZegoExpressCanvas : WXComponent
+@interface ZegoView : WXComponent
 
 @end
 

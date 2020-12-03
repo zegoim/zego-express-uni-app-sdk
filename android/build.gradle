@@ -40,6 +40,8 @@ repositories {
 }
 
 dependencies {
+    testImplementation 'junit:junit:4.12'
+    testImplementation 'junit:junit:4.12'
     compileOnly fileTree(dir: 'libs', include: ['*.jar'])
 
     compileOnly fileTree(dir: '../app/libs', include: ['uniapp-v8-release.aar'])

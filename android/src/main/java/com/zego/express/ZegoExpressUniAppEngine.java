@@ -7,6 +7,7 @@ import android.os.Build;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.taobao.weex.annotation.JSMethod;
@@ -30,6 +31,7 @@ import im.zego.zegoexpress.constants.ZegoLanguage;
 import im.zego.zegoexpress.constants.ZegoOrientation;
 import im.zego.zegoexpress.constants.ZegoPlayerMediaEvent;
 import im.zego.zegoexpress.constants.ZegoPlayerState;
+import im.zego.zegoexpress.constants.ZegoPlayerVideoLayer;
 import im.zego.zegoexpress.constants.ZegoPublishChannel;
 import im.zego.zegoexpress.constants.ZegoPublisherState;
 import im.zego.zegoexpress.constants.ZegoRemoteDeviceState;
@@ -38,9 +40,12 @@ import im.zego.zegoexpress.constants.ZegoScenario;
 import im.zego.zegoexpress.constants.ZegoUpdateType;
 import im.zego.zegoexpress.constants.ZegoVideoCodecID;
 import im.zego.zegoexpress.entity.ZegoAudioConfig;
+import im.zego.zegoexpress.entity.ZegoCDNConfig;
+import im.zego.zegoexpress.entity.ZegoCanvas;
 import im.zego.zegoexpress.entity.ZegoEngineConfig;
 import im.zego.zegoexpress.entity.ZegoLogConfig;
 import im.zego.zegoexpress.entity.ZegoPlayStreamQuality;
+import im.zego.zegoexpress.entity.ZegoPlayerConfig;
 import im.zego.zegoexpress.entity.ZegoPublishStreamQuality;
 import im.zego.zegoexpress.entity.ZegoRoomConfig;
 import im.zego.zegoexpress.entity.ZegoStream;
@@ -49,6 +54,9 @@ import im.zego.zegoexpress.entity.ZegoVideoConfig;
 import io.dcloud.feature.uniapp.common.UniModule;
 
 public class ZegoExpressUniAppEngine extends UniModule {
+    static HashMap<String, ZegoCanvas> playViewMap = new HashMap<String, ZegoCanvas>();
+    static HashMap<String, ZegoCanvas> previewViewMap = new HashMap<String, ZegoCanvas>();
+
     HashMap<String, JSCallback> callBackEventDict = new HashMap<String, JSCallback>();
     HashMap<String, ZegoMediaPlayer> mediaPlayerDict = new HashMap<String, ZegoMediaPlayer>();
 
@@ -105,7 +113,7 @@ public class ZegoExpressUniAppEngine extends UniModule {
                 map.put("errorCode", errorCode);
                 map.put("extendedData", JSONObject.parse(extendedData.toString()));
 
-                sendEvent("roomUserUpdate", map);
+                sendEvent("roomStateUpdate", map);
             }
 
             @Override
@@ -138,9 +146,8 @@ public class ZegoExpressUniAppEngine extends UniModule {
             }
 
             @Override
-            public void onRoomStreamUpdate(String roomID, ZegoUpdateType updateType, ArrayList<ZegoStream> streamList) {
-                super.onRoomStreamUpdate(roomID, updateType, streamList);
-
+            public void onRoomStreamUpdate(String roomID, ZegoUpdateType updateType, ArrayList<ZegoStream> streamList, org.json.JSONObject extendedData) {
+                super.onRoomStreamUpdate(roomID, updateType, streamList, extendedData);
                 JSONArray streamListArray = new JSONArray();
                 for(ZegoStream stream : streamList) {
                     JSONObject streamMap = new JSONObject();
@@ -159,6 +166,7 @@ public class ZegoExpressUniAppEngine extends UniModule {
                 args.put("roomID", roomID);
                 args.put("updateType", updateType.value());
                 args.put("streamList", streamListArray);
+                args.put("extendedData", extendedData);
                 sendEvent("roomStreamUpdate", args);
             }
 
@@ -383,6 +391,32 @@ public class ZegoExpressUniAppEngine extends UniModule {
     }
 
     @JSMethod (uiThread = false)
+    public void startPreview(Integer channel) {
+        ZegoCanvas canvas = previewViewMap.get(channel.toString());
+        ZegoExpressEngine.getEngine().startPreview(canvas, ZegoPublishChannel.getZegoPublishChannel(channel));
+    }
+
+    @JSMethod (uiThread = false)
+    public void  startPlayingStream(String streamID, JSONObject config) {
+        ZegoCanvas canvas = playViewMap.get(streamID);
+        if (config == null) {
+            ZegoExpressEngine.getEngine().startPlayingStream(streamID, canvas);
+            return;
+        }
+        ZegoPlayerConfig configP = new ZegoPlayerConfig();
+        ZegoCDNConfig cdnConfig = new ZegoCDNConfig();
+        if (config.getJSONObject("cdnConfig") != null) {
+            cdnConfig.authParam = config.getJSONObject("cdnConfig").getString("authParam");
+            cdnConfig.url = config.getJSONObject("cdnConfig").getString("url");
+            configP.cdnConfig = cdnConfig;
+        }
+        if (config.getInteger("videoLayer") != null) {
+            configP.videoLayer = ZegoPlayerVideoLayer.getZegoPlayerVideoLayer(config.getIntValue("videoLayer"));
+        }
+        ZegoExpressEngine.getEngine().startPlayingStream(streamID, canvas, configP);
+    }
+
+    @JSMethod (uiThread = false)
     public void setEngineConfig(JSONObject config) {
         ZegoEngineConfig configObj = new ZegoEngineConfig();
         JSONObject logConfig = config.getJSONObject("logConfig");
@@ -560,6 +594,11 @@ public class ZegoExpressUniAppEngine extends UniModule {
     @JSMethod (uiThread = false)
     public void enableHardwareEncoder(boolean enable) {
         ZegoExpressEngine.getEngine().enableHardwareEncoder(enable);
+    }
+
+    @JSMethod (uiThread = false)
+    public void enableCamera(boolean enable) {
+        ZegoExpressEngine.getEngine().enableCamera(enable);
     }
 
     @JSMethod (uiThread = false)

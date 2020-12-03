@@ -5,9 +5,12 @@ import android.support.annotation.NonNull;
 import android.util.Log;
 import android.view.TextureView;
 
+import com.taobao.weex.utils.WXLogUtils;
+
 import java.util.Map;
 
 import im.zego.zegoexpress.ZegoExpressEngine;
+import im.zego.zegoexpress.constants.ZegoPublishChannel;
 import im.zego.zegoexpress.constants.ZegoViewMode;
 import im.zego.zegoexpress.entity.ZegoCanvas;
 import io.dcloud.feature.uniapp.UniSDKInstance;
@@ -17,15 +20,17 @@ import io.dcloud.feature.uniapp.ui.component.AbsVContainer;
 import io.dcloud.feature.uniapp.ui.component.UniComponent;
 import io.dcloud.feature.uniapp.ui.component.UniComponentProp;
 
-public class ZegoExpressCanvas extends UniComponent<TextureView> {
+public class ZegoView extends UniComponent<TextureView> {
 
     ZegoExpressEngine engine;
 
     String streamID;
     Boolean isPreviewMode = false;
+    Integer channel = 0;
+
     int viewMode = 0;
 
-    public ZegoExpressCanvas(UniSDKInstance instance, AbsVContainer parent, AbsComponentData basicComponentData) {
+    public ZegoView(UniSDKInstance instance, AbsVContainer parent, AbsComponentData basicComponentData) {
         super(instance, parent, basicComponentData);
         engine =  ZegoExpressEngine.getEngine();
         AbsAttr attrs = basicComponentData.getAttrs();
@@ -38,6 +43,9 @@ public class ZegoExpressCanvas extends UniComponent<TextureView> {
         if (attrs.get("viewMode") != null) {
             viewMode = Integer.parseInt(attrs.get("viewMode").toString());
         }
+        if (attrs.get("channel") != null) {
+            viewMode = Integer.parseInt(attrs.get("channel").toString());
+        }
     }
 
     @Override
@@ -49,14 +57,17 @@ public class ZegoExpressCanvas extends UniComponent<TextureView> {
     protected void onHostViewInitialized(TextureView host) {
         super.onHostViewInitialized(host);
         ZegoCanvas canvas = new ZegoCanvas(getHostView());
+
         canvas.viewMode = ZegoViewMode.getZegoViewMode(this.viewMode);
         if (isPreviewMode) {
+            ZegoExpressUniAppEngine.previewViewMap.put(channel.toString(), canvas);
             engine.startPreview(canvas);
         } else {
             if (streamID == null) {
-                System.out.println("error: please offer legal stream ID");
+                WXLogUtils.e("error: please offer legal stream ID");
                 return;
             }
+            ZegoExpressUniAppEngine.playViewMap.put(streamID, canvas);
             engine.startPlayingStream(streamID, canvas);
         }
     }
@@ -66,7 +77,14 @@ public class ZegoExpressCanvas extends UniComponent<TextureView> {
     public void destroy() {
         super.destroy();
         if (ZegoExpressEngine.getEngine() != null) {
-            engine.stopPreview();
+            if (isPreviewMode) {
+                engine.stopPreview(ZegoPublishChannel.getZegoPublishChannel(channel));
+                ZegoExpressUniAppEngine.previewViewMap.remove(channel.toString());
+            } else {
+                engine.stopPlayingStream(streamID);
+                ZegoExpressUniAppEngine.playViewMap.remove(streamID);
+            }
+
         }
     }
 
@@ -83,6 +101,11 @@ public class ZegoExpressCanvas extends UniComponent<TextureView> {
     @UniComponentProp(name = "isPreviewMode")
     public void setIsPreviewMode(Boolean isPreviewModeNew) {
         this.isPreviewMode = isPreviewModeNew;
+    }
+
+    @UniComponentProp(name = "channel")
+    public void setIsPreviewMode(int channel) {
+        this.channel = channel;
     }
 
     @Override

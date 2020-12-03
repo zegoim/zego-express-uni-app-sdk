@@ -7,6 +7,7 @@
 
 #import "ZegoExpressUniAppEngine.h"
 #import <ZegoExpressEngine/ZegoExpressEngine.h>
+#import "ZegoExpressUniAppViewStore.h"
 
 @interface ZegoExpressUniAppEngine ()<ZegoEventHandler>
 
@@ -45,6 +46,38 @@ WX_EXPORT_METHOD_SYNC(@selector(destroyEngine:))
             callback(@(YES), NO);
         }
     }];
+}
+
+WX_EXPORT_METHOD_SYNC(@selector(startPreview:))
+
+- (void)startPreview:(NSUInteger)channel {
+    ZegoCanvas *canvas = [[ZegoExpressUniAppViewStore sharedInstance].previewViewDict objectForKey:@(channel).stringValue];
+    if (!canvas) {
+        WXLogError(@"没有设置相应的view用来预览");
+    }
+    [[ZegoExpressEngine sharedEngine] startPreview:canvas channel:channel];
+}
+
+WX_EXPORT_METHOD_SYNC(@selector(startPlayingStream:config:))
+- (void)startPlayingStream:(NSString *)streamID config:(NSDictionary *)config {
+    ZegoCanvas *canvas = [[ZegoExpressUniAppViewStore sharedInstance].playViewDict objectForKey:streamID];
+    
+    if (config != nil && [config isKindOfClass:[NSDictionary class]]) {
+        ZegoPlayerConfig *configP = [[ZegoPlayerConfig alloc] init];
+        ZegoCDNConfig *cdnConfig = [[ZegoCDNConfig alloc] init];
+        if (config[@"cdnConfig"]) {
+            cdnConfig.authParam = config[@"cdnConfig"][@"authParam"];
+            cdnConfig.url = config[@"cdnConfig"][@"url"];
+            configP.cdnConfig = cdnConfig;
+        }
+        if (config[@"videoLayer"]) {
+            configP.videoLayer = (ZegoPlayerVideoLayer)[config[@"videoLayer"] intValue];
+        }
+        [[ZegoExpressEngine sharedEngine] startPlayingStream:streamID canvas:canvas config:configP];
+    } else {
+        [[ZegoExpressEngine sharedEngine] startPlayingStream:streamID canvas:canvas];
+    }
+    
 }
 
 WX_EXPORT_METHOD_SYNC(@selector(setEngineConfig:))
@@ -245,6 +278,11 @@ WX_EXPORT_METHOD_SYNC(@selector(enableHardwareDecoder:))
     [[ZegoExpressEngine sharedEngine] enableHardwareDecoder:enable];
 }
 
+WX_EXPORT_METHOD_SYNC(@selector(enableCamera:))
+- (void)enableCamera:(BOOL)enable {
+    [[ZegoExpressEngine sharedEngine] enableCamera:enable];
+}
+
 WX_EXPORT_METHOD_SYNC(@selector(useFrontCamera:channel:))
 - (void)useFrontCamera:(BOOL)enable channel:(int)channel {
     [[ZegoExpressEngine sharedEngine] useFrontCamera:enable channel:channel];
@@ -309,7 +347,7 @@ WX_EXPORT_METHOD_SYNC(@selector(useFrontCamera:channel:))
     }
 }
 
-- (void)onRoomStreamUpdate:(ZegoUpdateType)updateType streamList:(NSArray<ZegoStream *> *)streamList roomID:(NSString *)roomID {
+- (void)onRoomStreamUpdate:(ZegoUpdateType)updateType streamList:(NSArray<ZegoStream *> *)streamList extendedData:(nullable NSDictionary *)extendedData roomID:(nonnull NSString *)roomID{
     WXModuleKeepAliveCallback eventCallback = (WXModuleKeepAliveCallback)self.callBackEventDict[kZegoExpressUniAppEngineEventRoomStreamUpdate];
     NSMutableArray<NSDictionary *> *streamArray = [NSMutableArray array];
     [streamList enumerateObjectsUsingBlock:^(ZegoStream * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
@@ -324,7 +362,8 @@ WX_EXPORT_METHOD_SYNC(@selector(useFrontCamera:channel:))
             kZegoExpressUniAppEngineResultKey: @{
                     @"updateType": @(updateType),
                     @"roomID": roomID,
-                    @"streamList": streamArray
+                    @"streamList": streamArray,
+                    @"extendedData": extendedData
             },
             kZegoExpressUniAppEngineEventKey : kZegoExpressUniAppEngineEventRoomStreamUpdate
             
