@@ -1,8 +1,9 @@
-import ZegoExpressEngineImpl from './impl/expressImpl';
+import ZegoExpressEngineImpl from './impl/ZegoExpressEngineImpl';
 import {
     ZegoScenario,
 	ZegoLanguage,
 	ZegoPublishChannel,
+	ZegoPlayerConfig,
 	ZegoVideoConfigPreset,
     ZegoAudioCaptureStereoMode,
     ZegoTrafficControlProperty,
@@ -10,13 +11,15 @@ import {
     ZegoRoomState,
     ZegoPublisherState,
     ZegoPlayerState,
-    ZegoUpdateType,
+	ZegoUpdateType,
+	ZegoStream,
+	ZegoUser,
     ZegoMediaPlayerState,
-} from './impl/expressDefines'
+} from './impl/ZegoExpressDefines'
 
 /**
  * @typedef {Object} ZegoExpressEngine
- * @property {Map} _mediaPlayerMap 
+ * @property @param {Map} _mediaPlayerMap 
  */
 
 export default class ZegoExpressEngine {
@@ -46,8 +49,8 @@ export default class ZegoExpressEngine {
      *
      * When the developer calls the function that enables audio and video related functions, such as calling [startPreview], [startPublishingStream], [startPlayingStream] and MediaPlayer related function, the audio/video engine will start; when all audio and video functions are stopped, the engine state will become stopped.
      * When the developer has been [loginRoom], once [logoutRoom] is called, the audio/video engine will stop (preview, publishing/playing stream, MediaPlayer and other audio and video related functions will also stop).
-     * @property {object} result - param object
-     * @property {ZegoEngineState} result.state - The audio/video engine state
+     * @property @param {object} result - param object
+     * @property @param {ZegoEngineState} result.state - The audio/video engine state
      */
 
     /**
@@ -55,11 +58,11 @@ export default class ZegoExpressEngine {
      * @desc The callback triggered when the room connection state changes.
      *
      * This callback is triggered when the connection status of the room changes, and the reason for the change is notified. Developers can use this callback to determine the status of the current user in the room. If the connection is being requested for a long time, the general probability is that the user's network is unstable.
-     * @property {object} result - param object
-     * @property {string} result.roomID - Room ID, a string of up to 128 bytes in length.
-     * @property {ZegoRoomState} result.state - Changed room state
-     * @property {number} result.errorCode - Error code, please refer to the Error Codes https://doc-en.zego.im/en/308.html for details
-     * @property {string} result.extendedData - Extended Information with state updates. As the standby, only an empty json table is currently returned
+     * @property @param {object} result - param object
+     * @property @param {string} result.roomID - Room ID, a string of up to 128 bytes in length.
+     * @property @param {ZegoRoomState} result.state - Changed room state
+     * @property @param {number} result.errorCode - Error code, please refer to the Error Codes https://doc-en.zego.im/en/308.html for details
+     * @property @param {string} result.extendedData - Extended Information with state updates. As the standby, only an empty json table is currently returned
      */
 
     /**
@@ -70,10 +73,10 @@ export default class ZegoExpressEngine {
      * If developers need to use ZEGO room users notifications, please make sure that each login user sets isUserStatusNotify to true
      * When a user logs in to a room for the first time, other users already exist in this room, and a user list of the type of addition is received.
      * When the user is already in the room, other users in this room will trigger this callback to notify the changed users when they enter or exit the room.
-     * @property {object} result - param object
-     * @property {string} result.roomID - Room ID where the user is logged in, a string of up to 128 bytes in length.
-     * @property {ZegoUpdateType} result.updateType - Update type (add/delete)
-     * @property {ZegoUser[]} result.userList - List of users changed in the current room
+     * @property @param {object} result - param object
+     * @property @param {string} result.roomID - Room ID where the user is logged in, a string of up to 128 bytes in length.
+     * @property @param {ZegoUpdateType} result.updateType - Update type (add/delete)
+     * @property @param {ZegoUser[]} result.userList - List of users changed in the current room
      */
 
     /**
@@ -82,9 +85,9 @@ export default class ZegoExpressEngine {
      *
      * This function is called back every 30 seconds.
      * Developers can use this callback to show the number of user online in the current room.
-     * @property {object} result - param object
-     * @property {string} result.roomID - Room ID where the user is logged in, a string of up to 128 bytes in length.
-     * @property {number} result.count - Count of online users
+     * @property @param {object} result - param object
+     * @property @param {string} result.roomID - Room ID where the user is logged in, a string of up to 128 bytes in length.
+     * @property @param {number} result.count - Count of online users
      */
 
     /**
@@ -94,10 +97,10 @@ export default class ZegoExpressEngine {
      * When a user logs in to a room for the first time, there are other users in the room who are publishing streams, and will receive a stream list of the added type.
      * When the user is already in the room, other users in this room will trigger this callback to notify the changed stream list when adding or deleting streams.
      * Developers can use this callback to determine if there are other users in the same room who have added or stopped streaming, in order to implement active play stream [startPlayingStream] or active stop playing stream [stopPlayingStream], and use simultaneous Changes to Streaming render UI widget;
-     * @property {object} result - param object
-     * @property {string} result.roomID - Room ID where the user is logged in, a string of up to 128 bytes in length.
-     * @property {ZegoUpdateType} result.updateType - Update type (add/delete)
-     * @property {ZegoStream[]} result.streamList - Updated stream list
+     * @property @param {object} result - param object
+     * @property @param {string} result.roomID - Room ID where the user is logged in, a string of up to 128 bytes in length.
+     * @property @param {ZegoUpdateType} result.updateType - Update type (add/delete)
+     * @property @param {ZegoStream[]} result.streamList - Updated stream list
      */
 
     /**
@@ -107,9 +110,9 @@ export default class ZegoExpressEngine {
      * When a user publishing the stream update the extra information of the stream in the same room, other users in the same room will receive the callback.
      * The stream extra information is an extra information identifier of the stream ID. Unlike the stream ID, which cannot be modified during the publishing process, the stream extra information can be modified midway through the stream corresponding to the stream ID.
      * Developers can synchronize variable content related to stream IDs based on stream additional information.
-     * @property {object} result - param object
-     * @property {string} result.roomID - Room ID where the user is logged in, a string of up to 128 bytes in length.
-     * @property {ZegoStream[]} result.streamList - List of streams that the extra info was updated.
+     * @property @param {object} result - param object
+     * @property @param {string} result.roomID - Room ID where the user is logged in, a string of up to 128 bytes in length.
+     * @property @param {ZegoStream[]} result.streamList - List of streams that the extra info was updated.
      */
 
     /**
@@ -119,11 +122,11 @@ export default class ZegoExpressEngine {
      * After publishing the stream successfully, the notification of the publish stream state change can be obtained through the callback function.
      * You can roughly judge the user's uplink network status based on whether the state parameter is in [PUBLISH_REQUESTING].
      * ExtendedData is extended information with state updates. If you use ZEGO's CDN content distribution network, after the stream is successfully published, the keys of the content of this parameter are flv_url_list, rtmp_url_list, hls_url_list. These correspond to the publishing stream URLs of the flv, rtmp, and hls protocols.
-     * @property {object} result - param object
-     * @property {string} result.streamID - Stream ID
-     * @property {ZegoPublisherState} result.state - Status of publishing stream
-     * @property {number} result.errorCode - The error code corresponding to the status change of the publish stream. Please refer to the Error Codes https://doc-en.zego.im/en/308.html for details.
-     * @property {string} result.extendedData - Extended information with state updates.
+     * @property @param {object} result - param object
+     * @property @param {string} result.streamID - Stream ID
+     * @property @param {ZegoPublisherState} result.state - Status of publishing stream
+     * @property @param {number} result.errorCode - The error code corresponding to the status change of the publish stream. Please refer to the Error Codes https://doc-en.zego.im/en/308.html for details.
+     * @property @param {string} result.extendedData - Extended information with state updates.
      */
 
     /**
@@ -132,11 +135,11 @@ export default class ZegoExpressEngine {
      *
      * After publishing the stream successfully, the notification of the publish stream state change can be obtained through the callback function.
      * You can roughly judge the user's downlink network status based on whether the state parameter is in [PLAY_REQUESTING].
-     * @property {object} result - param object
-     * @property {string} result.streamID - stream ID
-     * @property {ZegoPlayerState} result.state - Current play state
-     * @property {number} result.errorCode - The error code corresponding to the status change of the playing stream. Please refer to the Error Codes https://doc-en.zego.im/en/308.html for details.
-     * @property {string} result.extendedData - Extended Information with state updates. As the standby, only an empty json table is currently returned
+     * @property @param {object} result - param object
+     * @property @param {string} result.streamID - stream ID
+     * @property @param {ZegoPlayerState} result.state - Current play state
+     * @property @param {number} result.errorCode - The error code corresponding to the status change of the playing stream. Please refer to the Error Codes https://doc-en.zego.im/en/308.html for details.
+     * @property @param {string} result.extendedData - Extended Information with state updates. As the standby, only an empty json table is currently returned
      */
 	/**
 	 * register callback, the event list was list above
@@ -154,6 +157,33 @@ export default class ZegoExpressEngine {
      */
 	static destroyEngine(callback) {
 		ZegoExpressEngineImpl.destroyEngine(callback);
+	}
+	/**
+	     * Starts/Updates the local video preview (for the specified channel).
+	     *
+	     * The user can see his own local image by calling this function. The preview function does not require you to log in to the room or publish the stream first. But after exiting the room, SDK internally actively stops previewing by default.
+	     * Local view and preview modes can be updated by calling this function again.
+	     * You can set the mirror mode of the preview by calling the [setVideoMirrorMode] function. The default preview setting is image mirrored.
+	     * When this api is called, the audio and video engine module inside SDK will start really, and it will start to try to collect audio and video. In addition to calling this api normally to preview the local screen, developers can also pass [null] to the canvas parameter, in conjunction with ZegoExpressEngine's sound wave function, in order to achieve the purpose of detecting whether the audio equipment is working properly before logging in to the room.
+	     * @param {ZegoPublishChannel} channel - Publish stream channel
+	     */
+	startPreview(channel = 0) {
+		ZegoExpressEngineImpl.getInstance().startPreview(channel);
+	}
+
+	/**
+	 * Starts playing a stream from ZEGO's streaming cloud or from third-party CDN.
+	 *
+	 * This function allows users to play audio and video streams both from the ZEGO real-time audio and video cloud and from third-party cdn.
+	 * Before starting to play the stream, you need to join the room first, you can get the new streamID in the room by listening to the [onRoomStreamUpdate] event callback.
+	 * In the case of poor network quality, user play may be interrupted, the SDK will try to reconnect, and the current play status and error information can be obtained by listening to the [onPlayerStateUpdate] event.
+	 * Playing the stream ID that does not exist, the SDK continues to try to play after calling this function. After the stream ID is successfully published, the audio and video stream can be actually played.
+	 * The developer can update the player canvas by calling this function again (the streamID must be the same).
+	 * @param {string} streamID - Stream ID, a string of up to 256 characters. You cannot include URL keywords, otherwise publishing stream and playing stream will fails. Only support numbers, English characters and '~', '!', '@', '$', '%', '^', '&', '*', '(', ')', '_', '+', '=', '-', '`', ';', '’', ',', '.', '<', '>', '/', '\'.
+	 * @param {ZegoPlayerConfig} config - Advanced player configuration, optional
+	 */
+	startPlayingStream(streamID, config) {
+		ZegoExpressEngineImpl.getInstance().startPlayingStream(streamID, config);
 	}
 
 	/**
@@ -420,6 +450,18 @@ export default class ZegoExpressEngine {
     enableHardwareDecoder(enable){
         ZegoExpressEngineImpl.getInstance().enableHardwareDecoder(enable);
     }
+	
+	/**
+	 * Turns on/off the camera (for the specified channel).
+	 *
+	 * This function is used to control whether to start the camera acquisition. After the camera is turned off, video capture will not be performed. At this time, the publish stream will also have no video data.
+	 * In the case of using a custom video capture function, because the developer has taken over the video data capturing, the SDK is no longer responsible for the video data capturing, this api is no longer valid.
+	 * @param {boolean} enable - Whether to turn on the camera, true: turn on camera, false: turn off camera
+	 * @param {ZegoPublishChannel} channel - Publishing stream channel
+	 */
+	enableCamera(enable, channel) {
+		ZegoExpressEngineImpl.getInstance().enableCamera(enable,channel);
+	}
 
     /** 
      * Switches to the front or the rear camera.

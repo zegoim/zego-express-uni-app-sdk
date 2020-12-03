@@ -597,8 +597,8 @@ public class ZegoExpressUniAppEngine extends UniModule {
     }
 
     @JSMethod (uiThread = false)
-    public void enableCamera(boolean enable) {
-        ZegoExpressEngine.getEngine().enableCamera(enable);
+    public void enableCamera(boolean enable, Integer channel) {
+        ZegoExpressEngine.getEngine().enableCamera(enable,ZegoPublishChannel.getZegoPublishChannel(channel));
     }
 
     @JSMethod (uiThread = false)

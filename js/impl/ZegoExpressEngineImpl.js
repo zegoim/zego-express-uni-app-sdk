@@ -1,5 +1,5 @@
 var nativeEngine = uni.requireNativePlugin('ZegoExpressUniAppSDK-ZegoExpressUniAppEngine');
-import ZegoMediaPlayer from './mediaPlayer'
+import ZegoMediaPlayer from './ZegoMediaPlayer'
 import {
 	ZegoScenario,
 	ZegoLanguage,
@@ -42,7 +42,7 @@ import {
 	ZegoAudioEffectPlayState,
 	ZegoDataRecordType,
 	ZegoDataRecordState
-} from './expressDefines'
+} from './ZegoExpressDefines'
 
 
 /**
@@ -98,6 +98,15 @@ export default class ZegoExpressEngineImpl {
 		ZegoExpressEngineImpl.instance = null;
 	}
 
+	startPreview(channel = ZegoPublishChannel.Main) {
+		nativeEngine.startPreview(channel);
+	}
+
+	startPlayingStream(streamID, config = null) {
+		var a = '';
+		nativeEngine.startPlayingStream(streamID, config);
+	}
+
 	setEngineConfig(config) {
 		nativeEngine.setEngineConfig(config);
 	}
@@ -130,7 +139,7 @@ export default class ZegoExpressEngineImpl {
 		nativeEngine.logoutRoom(roomID);
 	}
 
-	startPublishingStream(streamID, channel = 0) {
+	startPublishingStream(streamID, channel = ZegoPublishChannel.Main) {
 		nativeEngine.startPublishingStream(streamID, channel);
 	}
 
@@ -194,7 +203,11 @@ export default class ZegoExpressEngineImpl {
 		nativeEngine.enableHardwareDecoder(enable);
 	}
 
-	useFrontCamera(enable, channel) {
+	enableCamera(enable, channel = ZegoPublishChannel) {
+		nativeEngine.enableCamera(enable, channel);
+	}
+
+	useFrontCamera(enable, channel = ZegoPublishChannel) {
 		nativeEngine.useFrontCamera(enable, channel);
 	}
 

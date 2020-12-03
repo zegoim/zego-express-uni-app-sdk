@@ -53,7 +53,7 @@ WX_EXPORT_METHOD_SYNC(@selector(startPreview:))
 - (void)startPreview:(NSUInteger)channel {
     ZegoCanvas *canvas = [[ZegoExpressUniAppViewStore sharedInstance].previewViewDict objectForKey:@(channel).stringValue];
     if (!canvas) {
-        WXLogError(@"没有设置相应的view用来预览");
+        WXLogWarning(@"没有设置相应的view用来预览");
     }
     [[ZegoExpressEngine sharedEngine] startPreview:canvas channel:channel];
 }
@@ -279,8 +279,8 @@ WX_EXPORT_METHOD_SYNC(@selector(enableHardwareDecoder:))
 }
 
 WX_EXPORT_METHOD_SYNC(@selector(enableCamera:))
-- (void)enableCamera:(BOOL)enable {
-    [[ZegoExpressEngine sharedEngine] enableCamera:enable];
+- (void)enableCamera:(BOOL)enable channel:(NSInteger)channel {
+    [[ZegoExpressEngine sharedEngine] enableCamera:enable channel:channel];
 }
 
 WX_EXPORT_METHOD_SYNC(@selector(useFrontCamera:channel:))
