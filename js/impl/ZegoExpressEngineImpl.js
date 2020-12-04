@@ -107,7 +107,7 @@ export default class ZegoExpressEngineImpl {
 		nativeEngine.startPlayingStream(streamID, config);
 	}
 
-	setEngineConfig(config) {
+	static setEngineConfig(config) {
 		nativeEngine.setEngineConfig(config);
 	}
 

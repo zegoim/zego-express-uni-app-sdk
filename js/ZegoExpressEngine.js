@@ -167,7 +167,7 @@ export default class ZegoExpressEngine {
 	     * When this api is called, the audio and video engine module inside SDK will start really, and it will start to try to collect audio and video. In addition to calling this api normally to preview the local screen, developers can also pass [null] to the canvas parameter, in conjunction with ZegoExpressEngine's sound wave function, in order to achieve the purpose of detecting whether the audio equipment is working properly before logging in to the room.
 	     * @param {ZegoPublishChannel} channel - Publish stream channel
 	     */
-	startPreview(channel = 0) {
+	startPreview(channel = ZegoPublishChannel.Main) {
 		ZegoExpressEngineImpl.getInstance().startPreview(channel);
 	}
 
@@ -182,7 +182,7 @@ export default class ZegoExpressEngine {
 	 * @param {string} streamID - Stream ID, a string of up to 256 characters. You cannot include URL keywords, otherwise publishing stream and playing stream will fails. Only support numbers, English characters and '~', '!', '@', '$', '%', '^', '&', '*', '(', ')', '_', '+', '=', '-', '`', ';', '’', ',', '.', '<', '>', '/', '\'.
 	 * @param {ZegoPlayerConfig} config - Advanced player configuration, optional
 	 */
-	startPlayingStream(streamID, config) {
+	startPlayingStream(streamID, config = null) {
 		ZegoExpressEngineImpl.getInstance().startPlayingStream(streamID, config);
 	}
 
@@ -191,8 +191,8 @@ export default class ZegoExpressEngine {
 	 * Developers need to call this function to set advanced function configuration when they need advanced functions of the engine.
 	 * @param  {ZegoEngineConfig} config Advanced engine configuration
 	 */
-	setEngineConfig(config) {
-		ZegoExpressEngineImpl.getInstance().setEngineConfig(config);
+	static setEngineConfig(config) {
+		ZegoExpressEngineImpl.setEngineConfig(config);
 	}
 
 	/**
@@ -214,7 +214,7 @@ export default class ZegoExpressEngine {
 	 * 
      * @param {ZegoPublishChannel} channel Publish stream channel
      */
-	setAppOrientation(orientation, channel) {
+	setAppOrientation(orientation, channel = ZegoPublishChannel.Main) {
         ZegoExpressEngineImpl.getInstance().setAppOrientation(orientation, channel);
 	}
 	
@@ -276,7 +276,7 @@ export default class ZegoExpressEngine {
      * In the case of poor network quality, user publish may be interrupted, and the SDK will attempt to reconnect. You can learn about the current state and error information of the stream published by monitoring the [onPublisherStateUpdate] event.
      * @param {string} streamID - Stream ID, a string of up to 256 characters, needs to be globally unique within the entire AppID. If in the same AppID, different users publish each stream and the stream ID is the same, which will cause the user to publish the stream failure. You cannot include URL keywords, otherwise publishing stream and playing stream will fails. Only support numbers, English characters and '~', '!', '@', '$', '%', '^', '&', '*', '(', ')', '_', '+', '=', '-', '`', ';', '’', ',', '.', '<', '>', '/', '\'.
      */
-    startPublishingStream(streamID, channel = 0){
+    startPublishingStream(streamID, channel = ZegoPublishChannel.Main){
         ZegoExpressEngineImpl.getInstance().startPublishingStream(streamID, channel);
 	}
 
@@ -459,7 +459,7 @@ export default class ZegoExpressEngine {
 	 * @param {boolean} enable - Whether to turn on the camera, true: turn on camera, false: turn off camera
 	 * @param {ZegoPublishChannel} channel - Publishing stream channel
 	 */
-	enableCamera(enable, channel) {
+	enableCamera(enable, channel = ZegoPublishChannel.Main) {
 		ZegoExpressEngineImpl.getInstance().enableCamera(enable,channel);
 	}
 
@@ -472,7 +472,7 @@ export default class ZegoExpressEngine {
      * @param {boolean}enable Whether to use the front camera, true: use the front camera, false: use the the rear camera. The default value is true
      * @param {ZegoPublishChannel}channel Publishing stream channel
      */
-	useFrontCamera(enable, channel) {
+	useFrontCamera(enable, channel = ZegoPublishChannel.Main) {
         ZegoExpressEngineImpl.getInstance().useFrontCamera(enable, channel);
 	} 
 
