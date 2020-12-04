@@ -3,3 +3,4 @@ android/libs/ZegoExpressEngine
 android/app
 android/zego_express_sdk/.idea
 android/zego_express_sdk/.gradle
+android/zego_express_sdk/libs
