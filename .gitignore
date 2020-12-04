@@ -1,2 +1,5 @@
 ios/ZegoExpressUniAppSDK/ZegoExpressEngine.framework
 android/libs/ZegoExpressEngine
+android/app
+android/zego_express_sdk/.idea
+android/zego_express_sdk/.gradle
