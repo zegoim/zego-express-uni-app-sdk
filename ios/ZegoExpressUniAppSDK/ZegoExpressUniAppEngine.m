@@ -168,11 +168,11 @@ WX_EXPORT_METHOD(@selector(setStreamExtraInfo:channel:callback:))
 WX_EXPORT_METHOD_SYNC(@selector(setVideoConfig:channel:))
 - (void)setVideoConfig:(NSDictionary *)config channel:(NSInteger)channel {
     ZegoVideoConfig *vConfig = [ZegoVideoConfig defaultConfig];
-    if (config[@"maxBitrate"]) {
-        vConfig.bitrate = [config[@"maxBitrate"] intValue];
+    if (config[@"bitrate"]) {
+        vConfig.bitrate = [config[@"bitrate"] intValue];
     }
-    if (config[@"frameRate"]) {
-        vConfig.fps = [config[@"frameRate"] intValue];
+    if (config[@"fps"]) {
+        vConfig.fps = [config[@"fps"] intValue];
     }
     if (config[@"codecID"]) {
         NSInteger codecNumber = [config[@"codecID"] intValue];
@@ -192,8 +192,8 @@ WX_EXPORT_METHOD_SYNC(@selector(getVideoConfig:))
     ZegoVideoConfig *config = [[ZegoExpressEngine sharedEngine] getVideoConfig:channel];
 
     return @{
-        @"maxBitrate": @(config.bitrate),
-        @"frameRate": @(config.fps),
+        @"bitrate": @(config.bitrate),
+        @"fps": @(config.fps),
         @"codecID": @(config.codecID),
         @"captureResolution": @{
                 @"width": @((int)config.captureResolution.width),
@@ -209,15 +209,15 @@ WX_EXPORT_METHOD_SYNC(@selector(getVideoConfig:))
 WX_EXPORT_METHOD_SYNC(@selector(setAudioConfig:))
 - (void)setAudioConfig:(NSDictionary *)config  {
     ZegoAudioConfig *vConfig = [ZegoAudioConfig defaultConfig];
-    if (config[@"maxBitrate"]) {
-        vConfig.bitrate = [config[@"maxBitrate"] intValue];
+    if (config[@"bitrate"]) {
+        vConfig.bitrate = [config[@"bitrate"] intValue];
     }
-    if (config[@"audioChannels"]) {
-        NSInteger channels = [config[@"audioChannels"] intValue];
+    if (config[@"channel"]) {
+        NSInteger channels = [config[@"channel"] intValue];
         vConfig.channel = (ZegoAudioChannel)channels;
     }
-    if (config[@"audioCodecID"]) {
-        ZegoAudioCodecID codec = (ZegoAudioCodecID)[config[@"audioCodecID"] intValue];
+    if (config[@"codecID"]) {
+        ZegoAudioCodecID codec = (ZegoAudioCodecID)[config[@"codecID"] intValue];
         vConfig.codecID = codec;
     }
     [[ZegoExpressEngine sharedEngine] setAudioConfig:vConfig];
@@ -227,9 +227,9 @@ WX_EXPORT_METHOD_SYNC(@selector(getAudioConfig))
 - (NSDictionary *)getAudioConfig {
     ZegoAudioConfig *config = [[ZegoExpressEngine sharedEngine] getAudioConfig];
     return @{
-        @"maxBitrate": @(config.bitrate),
-        @"audioChannels": @(config.channel),
-        @"audioCodecID": @(config.codecID),
+        @"bitrate": @(config.bitrate),
+        @"channel": @(config.channel),
+        @"codecID": @(config.codecID),
     };
 }
 
@@ -400,7 +400,7 @@ WX_EXPORT_METHOD_SYNC(@selector(useFrontCamera:channel:))
     if (eventCallback) {
         eventCallback(@{
             kZegoExpressUniAppEngineResultKey:@{
-                    @"stateString": @(state),
+                    @"state": @(state),
                     @"streamID": streamID,
                     @"errorCode": @(errorCode),
                     @"extendedData": extendedData,
@@ -415,7 +415,7 @@ WX_EXPORT_METHOD_SYNC(@selector(useFrontCamera:channel:))
     if (eventCallback) {
         eventCallback(@{
             kZegoExpressUniAppEngineResultKey:@{
-                    @"stateString": @(state),
+                    @"state": @(state),
                     @"streamID": streamID,
                     @"errorCode": @(errorCode),
                     @"extendedData": extendedData,
