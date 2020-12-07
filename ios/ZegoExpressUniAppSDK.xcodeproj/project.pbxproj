@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		861ED58625772E15003F12A6 /* ZegoExpressUniAppViewStore.h in Headers */ = {isa = PBXBuildFile; fileRef = 861ED58425772E15003F12A6 /* ZegoExpressUniAppViewStore.h */; };
 		861ED58725772E15003F12A6 /* ZegoExpressUniAppViewStore.m in Sources */ = {isa = PBXBuildFile; fileRef = 861ED58525772E15003F12A6 /* ZegoExpressUniAppViewStore.m */; };
+		861ED5B3257DD9EE003F12A6 /* ZegoPreviewView.h in Headers */ = {isa = PBXBuildFile; fileRef = 861ED5B1257DD9EE003F12A6 /* ZegoPreviewView.h */; };
+		861ED5B4257DD9EE003F12A6 /* ZegoPreviewView.m in Sources */ = {isa = PBXBuildFile; fileRef = 861ED5B2257DD9EE003F12A6 /* ZegoPreviewView.m */; };
 		86F76E60255A8A6B00E390FD /* ZegoExpressEngine.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 86F76E5E255A8A6700E390FD /* ZegoExpressEngine.framework */; };
 		86F76E65255A8AC200E390FD /* ZegoExpressUniAppEngine.h in Headers */ = {isa = PBXBuildFile; fileRef = 86F76E63255A8AC200E390FD /* ZegoExpressUniAppEngine.h */; };
 		86F76E66255A8AC200E390FD /* ZegoExpressUniAppEngine.m in Sources */ = {isa = PBXBuildFile; fileRef = 86F76E64255A8AC200E390FD /* ZegoExpressUniAppEngine.m */; };
@@ -19,6 +21,8 @@
 /* Begin PBXFileReference section */
 		861ED58425772E15003F12A6 /* ZegoExpressUniAppViewStore.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ZegoExpressUniAppViewStore.h; sourceTree = "<group>"; };
 		861ED58525772E15003F12A6 /* ZegoExpressUniAppViewStore.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ZegoExpressUniAppViewStore.m; sourceTree = "<group>"; };
+		861ED5B1257DD9EE003F12A6 /* ZegoPreviewView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ZegoPreviewView.h; sourceTree = "<group>"; };
+		861ED5B2257DD9EE003F12A6 /* ZegoPreviewView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ZegoPreviewView.m; sourceTree = "<group>"; };
 		86F76E35255A832A00E390FD /* ZegoExpressUniAppSDK.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = ZegoExpressUniAppSDK.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		86F76E39255A832A00E390FD /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		86F76E5E255A8A6700E390FD /* ZegoExpressEngine.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = ZegoExpressEngine.framework; sourceTree = "<group>"; };
@@ -67,6 +71,8 @@
 				861ED58525772E15003F12A6 /* ZegoExpressUniAppViewStore.m */,
 				86F76FD2255B85CA00E390FD /* ZegoView.h */,
 				86F76FD3255B85CA00E390FD /* ZegoView.m */,
+				861ED5B1257DD9EE003F12A6 /* ZegoPreviewView.h */,
+				861ED5B2257DD9EE003F12A6 /* ZegoPreviewView.m */,
 			);
 			path = ZegoExpressUniAppSDK;
 			sourceTree = "<group>";
@@ -79,6 +85,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				86F76FD4255B85CA00E390FD /* ZegoView.h in Headers */,
+				861ED5B3257DD9EE003F12A6 /* ZegoPreviewView.h in Headers */,
 				861ED58625772E15003F12A6 /* ZegoExpressUniAppViewStore.h in Headers */,
 				86F76E65255A8AC200E390FD /* ZegoExpressUniAppEngine.h in Headers */,
 			);
@@ -153,6 +160,7 @@
 			files = (
 				86F76E66255A8AC200E390FD /* ZegoExpressUniAppEngine.m in Sources */,
 				86F76FD5255B85CA00E390FD /* ZegoView.m in Sources */,
+				861ED5B4257DD9EE003F12A6 /* ZegoPreviewView.m in Sources */,
 				861ED58725772E15003F12A6 /* ZegoExpressUniAppViewStore.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
