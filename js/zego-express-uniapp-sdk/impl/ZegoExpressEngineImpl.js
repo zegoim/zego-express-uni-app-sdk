@@ -217,5 +217,8 @@ export default class ZegoExpressEngineImpl {
 		return player;
 	}
 
+	sendCustomCommand(roomID, command, toUserList, callback) {
+		nativeEngine.sendCustomCommand(roomID, command, toUserList, callback);
+	}
 
 }

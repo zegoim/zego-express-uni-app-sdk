@@ -49,7 +49,6 @@ export default class ZegoExpressEngine {
      *
      * When the developer calls the function that enables audio and video related functions, such as calling [startPreview], [startPublishingStream], [startPlayingStream] and MediaPlayer related function, the audio/video engine will start; when all audio and video functions are stopped, the engine state will become stopped.
      * When the developer has been [loginRoom], once [logoutRoom] is called, the audio/video engine will stop (preview, publishing/playing stream, MediaPlayer and other audio and video related functions will also stop).
-     * @property @param {object} result - param object
      * @property @param {ZegoEngineState} result.state - The audio/video engine state
      */
 
@@ -58,7 +57,6 @@ export default class ZegoExpressEngine {
      * @desc The callback triggered when the room connection state changes.
      *
      * This callback is triggered when the connection status of the room changes, and the reason for the change is notified. Developers can use this callback to determine the status of the current user in the room. If the connection is being requested for a long time, the general probability is that the user's network is unstable.
-     * @property @param {object} result - param object
      * @property @param {string} result.roomID - Room ID, a string of up to 128 bytes in length.
      * @property @param {ZegoRoomState} result.state - Changed room state
      * @property @param {number} result.errorCode - Error code, please refer to the Error Codes https://doc-en.zego.im/en/308.html for details
@@ -73,7 +71,6 @@ export default class ZegoExpressEngine {
      * If developers need to use ZEGO room users notifications, please make sure that each login user sets isUserStatusNotify to true
      * When a user logs in to a room for the first time, other users already exist in this room, and a user list of the type of addition is received.
      * When the user is already in the room, other users in this room will trigger this callback to notify the changed users when they enter or exit the room.
-     * @property @param {object} result - param object
      * @property @param {string} result.roomID - Room ID where the user is logged in, a string of up to 128 bytes in length.
      * @property @param {ZegoUpdateType} result.updateType - Update type (add/delete)
      * @property @param {ZegoUser[]} result.userList - List of users changed in the current room
@@ -85,7 +82,6 @@ export default class ZegoExpressEngine {
      *
      * This function is called back every 30 seconds.
      * Developers can use this callback to show the number of user online in the current room.
-     * @property @param {object} result - param object
      * @property @param {string} result.roomID - Room ID where the user is logged in, a string of up to 128 bytes in length.
      * @property @param {number} result.count - Count of online users
      */
@@ -97,7 +93,6 @@ export default class ZegoExpressEngine {
      * When a user logs in to a room for the first time, there are other users in the room who are publishing streams, and will receive a stream list of the added type.
      * When the user is already in the room, other users in this room will trigger this callback to notify the changed stream list when adding or deleting streams.
      * Developers can use this callback to determine if there are other users in the same room who have added or stopped streaming, in order to implement active play stream [startPlayingStream] or active stop playing stream [stopPlayingStream], and use simultaneous Changes to Streaming render UI widget;
-     * @property @param {object} result - param object
      * @property @param {string} result.roomID - Room ID where the user is logged in, a string of up to 128 bytes in length.
      * @property @param {ZegoUpdateType} result.updateType - Update type (add/delete)
      * @property @param {ZegoStream[]} result.streamList - Updated stream list
@@ -110,7 +105,6 @@ export default class ZegoExpressEngine {
      * When a user publishing the stream update the extra information of the stream in the same room, other users in the same room will receive the callback.
      * The stream extra information is an extra information identifier of the stream ID. Unlike the stream ID, which cannot be modified during the publishing process, the stream extra information can be modified midway through the stream corresponding to the stream ID.
      * Developers can synchronize variable content related to stream IDs based on stream additional information.
-     * @property @param {object} result - param object
      * @property @param {string} result.roomID - Room ID where the user is logged in, a string of up to 128 bytes in length.
      * @property @param {ZegoStream[]} result.streamList - List of streams that the extra info was updated.
      */
@@ -122,7 +116,6 @@ export default class ZegoExpressEngine {
      * After publishing the stream successfully, the notification of the publish stream state change can be obtained through the callback function.
      * You can roughly judge the user's uplink network status based on whether the state parameter is in [PUBLISH_REQUESTING].
      * ExtendedData is extended information with state updates. If you use ZEGO's CDN content distribution network, after the stream is successfully published, the keys of the content of this parameter are flv_url_list, rtmp_url_list, hls_url_list. These correspond to the publishing stream URLs of the flv, rtmp, and hls protocols.
-     * @property @param {object} result - param object
      * @property @param {string} result.streamID - Stream ID
      * @property @param {ZegoPublisherState} result.state - Status of publishing stream
      * @property @param {number} result.errorCode - The error code corresponding to the status change of the publish stream. Please refer to the Error Codes https://doc-en.zego.im/en/308.html for details.
@@ -135,14 +128,25 @@ export default class ZegoExpressEngine {
      *
      * After publishing the stream successfully, the notification of the publish stream state change can be obtained through the callback function.
      * You can roughly judge the user's downlink network status based on whether the state parameter is in [PLAY_REQUESTING].
-     * @property @param {object} result - param object
      * @property @param {string} result.streamID - stream ID
      * @property @param {ZegoPlayerState} result.state - Current play state
      * @property @param {number} result.errorCode - The error code corresponding to the status change of the playing stream. Please refer to the Error Codes https://doc-en.zego.im/en/308.html for details.
      * @property @param {string} result.extendedData - Extended Information with state updates. As the standby, only an empty json table is currently returned
      */
+	
 	/**
-	 * register callback, the event list was list above
+	 * @event ZegoExpressEngine#IMRecvCustomCommand
+	 * @desc The callback triggered when a Custom Command is received.
+	 *
+	 * This callback is used to receive custom signaling sent by other users, and barrage messages sent by users themselves will not be notified through this callback.
+	 * @property {string} result.roomID - Room ID
+	 * @property {ZegoUser} result.fromUser - Sender of the command
+	 * @property {string} result.command - Command content received
+	 */
+		
+		
+	/**
+	 * register callback, the event list was listed above
 	 * @param  {String} event
 	 * @param  {(result: any) => Void} callback
 	 */
@@ -486,6 +490,19 @@ export default class ZegoExpressEngine {
 		var playerMap = ZegoExpressEngineImpl.getInstance().createMediaPlayer();
 		var player = new ZegoMediaPlayer(playerMap);
 		return player;
+	}
+	
+	/**
+	 * Sends a Custom Command to the specified users in the same room.
+	 *
+	 * The frequency of custom messages sent to a single user in the same room cannot be higher than 200 messages/s, and the frequency of custom messages sent to multiple users cannot be higher than 10 messages/s.
+	 * The point-to-point signaling type in the same room is generally used for remote control signaling or for sending messages between users. The messages are reliable.
+	 * @param {string} roomID - Room ID, a string of up to 128 bytes in length. Only support numbers, English characters and '~', '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+', '=', '-', '`', ';', '’', ',', '.', '<', '>', '/', '\'
+	 * @param {string} command - Custom command content, no longer than 1024 bytes
+	 * @param {ZegoUser[]} toUserList - The users who will receive the command
+	 */
+	sendCustomCommand(roomID, command, toUserList, callback) {
+		ZegoExpressEngineImpl.getInstance().sendCustomCommand(roomID, command, toUserList, callback);
 	}
 	
 }
