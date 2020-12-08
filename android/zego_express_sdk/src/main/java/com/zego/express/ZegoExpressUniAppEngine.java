@@ -21,6 +21,7 @@ import im.zego.zegoexpress.ZegoExpressEngine;
 import im.zego.zegoexpress.ZegoMediaPlayer;
 import im.zego.zegoexpress.callback.IZegoDestroyCompletionCallback;
 import im.zego.zegoexpress.callback.IZegoEventHandler;
+import im.zego.zegoexpress.callback.IZegoIMSendCustomCommandCallback;
 import im.zego.zegoexpress.callback.IZegoMediaPlayerLoadResourceCallback;
 import im.zego.zegoexpress.callback.IZegoPublisherSetStreamExtraInfoCallback;
 import im.zego.zegoexpress.constants.ZegoAudioCaptureStereoMode;
@@ -374,7 +375,19 @@ public class ZegoExpressUniAppEngine extends UniModule {
                 sendEvent("remoteMicStateUpdate", args);
             }
 
+            @Override
+            public void onIMRecvCustomCommand(String roomID, ZegoUser fromUser, String command) {
+                super.onIMRecvCustomCommand(roomID, fromUser, command);
+                JSONObject userMap = new JSONObject();
+                userMap.put("userID", fromUser.userID);
+                userMap.put("userName", fromUser.userName);
+                JSONObject map = new JSONObject();
+                map.put("roomID", roomID);
+                map.put("fromUser", userMap);
+                map.put("command", command);
 
+                sendEvent("IMRecvCustomCommand", map);
+            }
         });
     }
 
@@ -695,7 +708,25 @@ public class ZegoExpressUniAppEngine extends UniModule {
         }
     }
 
-    public void checkOrRequestPermission() {
+    @JSMethod (uiThread = false)
+    public void sendCustomCommand(String roomID, String command, JSONArray toUserList, final JSCallback callback) {
+        ArrayList<ZegoUser> userListArray = new ArrayList<ZegoUser>();
+        for (Object userOBjMap : toUserList) {
+            JSONObject userMap = (JSONObject) JSONObject.toJSON(userOBjMap);
+            ZegoUser user = new ZegoUser(userMap.getString("userID"), userMap.getString("userName"));
+            userListArray.add(user);
+        }
+        ZegoExpressEngine.getEngine().sendCustomCommand(roomID, command, userListArray, new IZegoIMSendCustomCommandCallback() {
+            @Override
+            public void onIMSendCustomCommandResult(int i) {
+                if (callback != null) {
+                    callback.invoke(true);
+                }
+            }
+        });
+    }
+
+    public boolean checkOrRequestPermission() {
         String[] PERMISSIONS_STORAGE = {
                 "android.permission.CAMERA",
                 "android.permission.RECORD_AUDIO"};
@@ -706,7 +737,33 @@ public class ZegoExpressUniAppEngine extends UniModule {
 
                 Activity activity = (Activity)mWXSDKInstance.getContext();
                 activity.requestPermissions(PERMISSIONS_STORAGE, 101);
+                return false;
+            } else {
+                return true;
             }
+        } else {
+            return true;
+        }
+    }
+
+    private final int REQUEST_CODE_ADDRESS = 100;
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        switch (requestCode) {
+            case REQUEST_CODE_ADDRESS:
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] ==PackageManager.PERMISSION_GRANTED) {
+                    // Permission Granted 授予权限
+                    //处理授权之后逻辑
+
+                } else {
+                    // Permission Denied 权限被拒绝
+                }
+
+                break;
+            default:
+                break;
         }
     }
 }

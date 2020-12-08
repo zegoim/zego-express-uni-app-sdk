@@ -39,6 +39,8 @@ static const NSString *kZegoExpressUniAppEngineEventPublisherStateUpdate = @"pub
 
 static const NSString *kZegoExpressUniAppEngineEventPlayerStateUpdate = @"playerStateUpdate";
 
+static const NSString *kZegoExpressUniAppEngineEventIMRecvCustomCommand = @"IMRecvCustomCommand";
+
 
 NS_ASSUME_NONNULL_BEGIN
 

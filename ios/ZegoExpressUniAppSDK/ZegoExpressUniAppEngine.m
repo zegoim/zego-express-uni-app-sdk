@@ -288,6 +288,26 @@ WX_EXPORT_METHOD_SYNC(@selector(useFrontCamera:channel:))
     [[ZegoExpressEngine sharedEngine] useFrontCamera:enable channel:channel];
 }
 
+WX_EXPORT_METHOD(@selector(sendCustomCommand:toUserList:roomID:callback:))
+- (void)sendCustomCommand:(NSString *)command toUserList:(nullable NSArray<NSDictionary *> *)toUserList roomID:(NSString *)roomID callback:(nullable WXModuleCallback)callback {
+    
+    NSMutableArray<ZegoUser *> *toUserListFinal = [NSMutableArray array];
+    for (NSDictionary *userDict in toUserList) {
+        if (userDict[@"userID"] == NULL) {
+            WXLogError(@"用户ID不得为空");
+            return;
+        }
+        ZegoUser *user = [ZegoUser userWithUserID:userDict[@"userID"] userName:userDict[@"userName"]];
+        [toUserListFinal addObject:user];
+    }
+    
+    [[ZegoExpressEngine sharedEngine] sendCustomCommand:command toUserList:toUserListFinal roomID:roomID callback:^(int errorCode) {
+        if (callback) {
+            callback(@(errorCode));
+        }
+    }];
+}
+
 #pragma mark - EventHandler
 
 - (void)onEngineStateUpdate:(ZegoEngineState)state {
@@ -421,6 +441,23 @@ WX_EXPORT_METHOD_SYNC(@selector(useFrontCamera:channel:))
                     @"extendedData": extendedData,
             },
             kZegoExpressUniAppEngineEventKey:kZegoExpressUniAppEngineEventPlayerStateUpdate
+                      }, YES);
+    }
+}
+
+- (void)onIMRecvCustomCommand:(NSString *)command fromUser:(ZegoUser *)fromUser roomID:(NSString *)roomID {
+    WXModuleKeepAliveCallback eventCallback = (WXModuleKeepAliveCallback)self.callBackEventDict[kZegoExpressUniAppEngineEventIMRecvCustomCommand];
+    if (eventCallback) {
+        eventCallback(@{
+            kZegoExpressUniAppEngineResultKey:@{
+                    @"command": command,
+                    @"fromUser": @{
+                            @"userID":fromUser.userID,
+                            @"userName":fromUser.userName,
+                    },
+                    @"roomID": roomID
+            },
+            kZegoExpressUniAppEngineEventKey:kZegoExpressUniAppEngineEventIMRecvCustomCommand
                       }, YES);
     }
 }
