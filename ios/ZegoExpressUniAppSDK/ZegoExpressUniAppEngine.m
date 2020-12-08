@@ -288,8 +288,8 @@ WX_EXPORT_METHOD_SYNC(@selector(useFrontCamera:channel:))
     [[ZegoExpressEngine sharedEngine] useFrontCamera:enable channel:channel];
 }
 
-WX_EXPORT_METHOD(@selector(sendCustomCommand:toUserList:roomID:callback:))
-- (void)sendCustomCommand:(NSString *)command toUserList:(nullable NSArray<NSDictionary *> *)toUserList roomID:(NSString *)roomID callback:(nullable WXModuleCallback)callback {
+WX_EXPORT_METHOD(@selector(sendCustomCommand:command:toUserList:callback:))
+- (void)sendCustomCommand:(NSString *)roomID command:(NSString *)command toUserList:(nullable NSArray<NSDictionary *> *)toUserList  callback:(nullable WXModuleCallback)callback {
     
     NSMutableArray<ZegoUser *> *toUserListFinal = [NSMutableArray array];
     for (NSDictionary *userDict in toUserList) {
@@ -297,7 +297,11 @@ WX_EXPORT_METHOD(@selector(sendCustomCommand:toUserList:roomID:callback:))
             WXLogError(@"用户ID不得为空");
             return;
         }
-        ZegoUser *user = [ZegoUser userWithUserID:userDict[@"userID"] userName:userDict[@"userName"]];
+        NSString *userName = @"";
+        if (userDict[@"userName"]) {
+            userName = userDict[@"userName"];
+        }
+        ZegoUser *user = [ZegoUser userWithUserID:userDict[@"userID"] userName:userName];
         [toUserListFinal addObject:user];
     }
     
