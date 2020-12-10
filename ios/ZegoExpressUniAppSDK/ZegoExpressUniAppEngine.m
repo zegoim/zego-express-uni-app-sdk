@@ -121,10 +121,10 @@ WX_EXPORT_METHOD_SYNC(@selector(getVersion))
 #pragma mark - 房间
 
 WX_EXPORT_METHOD_SYNC(@selector(loginRoom:user:config:))
-- (void)loginRoom:(NSString *)roomID user:(NSDictionary *)userDict config:(nonnull NSDictionary *)config {
+- (void)loginRoom:(NSString *)roomID user:(NSDictionary *)user config:(NSDictionary *)config {
     ZegoRoomConfig *defaultConfig = [ZegoRoomConfig defaultConfig];
     defaultConfig.isUserStatusNotify = YES;
-    if (config) {
+    if (config && [config isKindOfClass:[NSDictionary class]]) {
         if (config[@"userUpdate"]) {
             defaultConfig.isUserStatusNotify = [config[@"userUpdate"] boolValue];
         }
@@ -135,7 +135,8 @@ WX_EXPORT_METHOD_SYNC(@selector(loginRoom:user:config:))
             defaultConfig.token = config[@"token"];
         }
     }
-    [[ZegoExpressEngine sharedEngine] loginRoom:roomID user:[ZegoUser userWithUserID:[userDict[@"userID"] stringValue] userName:userDict[@"userName"]] config:defaultConfig];
+    
+    [[ZegoExpressEngine sharedEngine] loginRoom:roomID user:[ZegoUser userWithUserID:user[@"userID"] userName:user[@"userName"]] config:defaultConfig];
 }
 
 WX_EXPORT_METHOD_SYNC(@selector(logoutRoom:))
