@@ -32,7 +32,12 @@ export default class ZegoExpressEngine {
 	 * @return {ZegoExpressEngine}
 	 */
 	static createEngine(appID, appSign, isTestEnv, scenario) {
-		return ZegoExpressEngineImpl.createEngine(appID, appSign, isTestEnv, scenario);
+		
+		if (ZegoExpressEngine.instance == null) {
+			ZegoExpressEngine.instance = new ZegoExpressEngine();
+			ZegoExpressEngineImpl.createEngine(appID, appSign, isTestEnv, scenario);
+		}
+		return ZegoExpressEngine.instance;
 	}
 
 	/**
@@ -40,7 +45,11 @@ export default class ZegoExpressEngine {
 	 * The Singleton ZegoExpressEngine
 	 */
 	static getInstance() {
-		return ZegoExpressEngineImpl.getInstance();
+		if (ZegoExpressEngine.instance != null) {
+			return ZegoExpressEngine.instance;
+		} else {
+			throw new Error('Get instance failed. Please create engine first')
+		}
 	}
 
 	/**
@@ -257,10 +266,9 @@ export default class ZegoExpressEngine {
      * @param {ZegoUser} user - User object instance, configure userID, userName. Note that the userID needs to be globally unique with the same appID, otherwise the user who logs in later will kick out the user who logged in first.
      * @param {ZegoRoomConfig} config - Advanced room configuration
      */
-    loginRoom(roomID, user, config = { maxMemberCount:0, userUpdate: true, token:'' }){
+    loginRoom(roomID, user, config = { 'maxMemberCount':0, 'userUpdate': true, 'token':'' }){
 		ZegoExpressEngineImpl.getInstance().loginRoom(roomID, user, config);
 	}
-
 	
     /**
      * Logs out of a room.
@@ -487,8 +495,7 @@ export default class ZegoExpressEngine {
      * @return {ZegoMediaPlayer} - Media player instance, null will be returned when the maximum number is exceeded.
      */
 	createMediaPlayer() {
-		var playerMap = ZegoExpressEngineImpl.getInstance().createMediaPlayer();
-		var player = new ZegoMediaPlayer(playerMap);
+		var player = ZegoExpressEngineImpl.getInstance().createMediaPlayer();
 		return player;
 	}
 	

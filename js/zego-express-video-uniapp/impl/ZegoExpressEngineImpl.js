@@ -127,11 +127,8 @@ export default class ZegoExpressEngineImpl {
 		return nativeEngine.getVersion();
 	}
 
-	loginRoom(roomID, user, config = {
-		maxMemberCount: 0,
-		userUpdate: true,
-		token: ''
-	}) {
+	loginRoom(roomID, user, config) {
+		console.log(config);
 		nativeEngine.loginRoom(roomID, user, config);
 	}
 
@@ -212,6 +209,7 @@ export default class ZegoExpressEngineImpl {
 	}
 
 	createMediaPlayer() {
+		console.log('createMediaPlayer engineIMP.js');
 		var playerMap = nativeEngine.createMediaPlayer();
 		var player = new ZegoMediaPlayer(playerMap);
 		return player;

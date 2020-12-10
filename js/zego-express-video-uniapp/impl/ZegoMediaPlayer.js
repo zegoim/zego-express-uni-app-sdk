@@ -1,4 +1,4 @@
-var nativeEngine = uni.requireNativePlugin('ZegoExpressUniAppSDK-ZegoExpressUniAppEngine');
+var nativeEngine = uni.requireNativePlugin('zego-ZegoExpressUniAppSDK_ZegoExpressUniAppEngine');
 
 /**
  * @typedef {Object} ZegoMediaPlayer
