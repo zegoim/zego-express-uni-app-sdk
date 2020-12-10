@@ -23,9 +23,9 @@
 
 将以上「js封装层」引入到uniapp项目中
 
- ## 基础使用法（音频）
+ ## 基础使用（音频）
 
-1、初始化 SDK
+#### 初始化 SDK
 
 ```javascript
 import ZegoExpressEngine from 'zego-express-video-uniapp/ZegoExpressEngine';
@@ -37,7 +37,7 @@ import {
 var instance = ZegoExpressEngine.createEngine(AppID, AppSign, false, ZegoScenario.General);
 ```
 
-2、关闭视频功能
+#### 关闭视频功能
 
 ```javascript
 //不启用摄像头
@@ -46,7 +46,7 @@ instance.enableCamera(false);
 instance.mutePublishStreamVideo(true)
 ```
 
-3、注册通知事件
+#### 注册通知事件
 
 ```javascript
 instance.on('roomStateUpdate', result => {
@@ -88,27 +88,35 @@ instance.on('roomUserUpdate', result => {
 });
 ```
 
-4、登录
+#### 登录
 
 ```
 var instance = ZegoExpressEngine.getInstance();
 instance.loginRoom(this.roomID, { userID: this.userID, userName: this.userName });
 ```
 
-
-
-5、推流、拉流
+#### 推流
 
 ```javascript
 var instance = ZegoExpressEngine.getInstance();
+var publishStreamID = '123456'
+instance.startPublishingStream(publishStreamID); //推流（推流的streamID由用户设置），需要在登录成功之后才执行推流
 
-instance.startPublishingStream(this.publishStreamID); //推流（推流的streamID由用户设置），通常会在登录之后执行推流
-
-instance.startPlayingStream(streamID); //拉流的streamID来自于事件‘roomStreamUpdate’获取的stream中的streamID
 ```
-## 注意（不需要视频功能的可忽略）
-1、如果启用视频功能，拉流播放的时候需保证<template>标签内有相应的<zego-view>标签，该标签内需绑定相应流的streamID，此标签会在原生端生成对应的view，展示拉流的画面
-简单举例：
+#### 拉流
+
+```javascript
+instance.startPlayingStream(streamID); //拉流的streamID来自于事件'roomStreamUpdate'获取的stream中的streamID
+```
+
+
+
+## 基础使用（视频）
+
+#### 拉流
+
+如果启用视频功能，拉流播放的时候需保证<template>标签内有相应的<zego-view>标签，该标签内需绑定相应流的streamID，此标签会在原生端生成对应的view，展示拉流的画面
+使用示例：
 
 ```javascript
 <template>
@@ -120,24 +128,51 @@ var instance = ZegoExpressEngine.getInstance();
 instance.startPlayingStream(stream.streamID);
 ```
 
+#### 预览
+预览的时候需保证<template>标签内有相应的<zego-preview-view>标签，该标签内可绑定相应的channel(该参数非必填)，channel的概念参考接口[startPreview](https://doc-zh.zego.im/zh/api?doc=Express_Video_SDK_API~ObjectiveC~class~zego-express-engine#start-preview-channel)
+
+此标签会在原生端生成对应的view，展示拉流的画面
+使用示例：
+
+```javascript
+<template>
+	<zego-preview-view style="margin-top: 20rpx;margin-left: 20rpx;width:200rpx;height:300rpx"></zego-preview-view>
+</template>
+
+js部分:
+var instance = ZegoExpressEngine.getInstance();
+instance.startPreview();
+```
+
+
 特别提示：
 
 使用视频功能时，页面必须使用.nvue文件构建，因为uniapp的.vue页面在原生端（iOS、android）是用 webview 构建的，不能支持component类型的插件
 
 详情可参考：https://nativesupport.dcloud.net.cn/NativePlugin/course/ios
 
+#### 推流
+```javascript
+var instance = ZegoExpressEngine.getInstance();
+var publishStreamID = '123456'
+instance.startPublishingStream(publishStreamID);
+```
 
 
-## Demo使用
+## 更多功能
 
-Demo下载地址
+1、参考示例源码
+
+2、参考ZegoExpressEngine 原生iOS版使用文档 https://doc-zh.zego.im/zh/5413.html
+
+## 示例源码使用
+
+示例源码下载地址
 
 [ZegoExpressExample-UniApp](http://zego-public.oss-cn-shanghai.aliyuncs.com/express/example/uniapp/ZegoExpressExample-UniApp.zip)
 
 1. 将Demo导入HBuilderX，修改manifest.json下的AppID(uniapp的AppID)
-
 2. 修改Demo下./KeyCenter.js 内的AppID、AppSign     (从ZEGO官网获取的)
-
 3. 导入「ZegoExpressEngine」uniapp SDK
-
-4. 运行到真机
+4. 使用uniapp本地打包/云打包，制定自定义基座
+5. 运行
