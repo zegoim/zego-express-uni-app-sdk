@@ -170,6 +170,7 @@ export default class ZegoExpressEngine {
      */
 	static destroyEngine(callback) {
 		ZegoExpressEngineImpl.destroyEngine(callback);
+		ZegoExpressEngine.instance = null;
 	}
 	/**
 	     * Starts/Updates the local video preview (for the specified channel).
