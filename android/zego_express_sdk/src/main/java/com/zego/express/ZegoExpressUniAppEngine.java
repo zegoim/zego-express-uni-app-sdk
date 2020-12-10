@@ -85,7 +85,6 @@ public class ZegoExpressUniAppEngine extends UniModule {
 
     @JSMethod (uiThread = false)
     public void createEngine(Integer appID, String appSign, boolean isTestEnv, int scenario) {
-        checkOrRequestPermission();
         JSONObject param = new JSONObject();
         param.put("appSign", appSign);
         param.put("info", "触发了原生的create调用");
@@ -726,17 +725,25 @@ public class ZegoExpressUniAppEngine extends UniModule {
         });
     }
 
-    public boolean checkOrRequestPermission() {
+    @JSMethod (uiThread = false)
+    public void requestCameraAndAudioPermission() {
         String[] PERMISSIONS_STORAGE = {
                 "android.permission.CAMERA",
                 "android.permission.RECORD_AUDIO"};
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (ContextCompat.checkSelfPermission(mWXSDKInstance.getContext(), "android.permission.CAMERA") != PackageManager.PERMISSION_GRANTED
                     || ContextCompat.checkSelfPermission(mWXSDKInstance.getContext(), "android.permission.RECORD_AUDIO") != PackageManager.PERMISSION_GRANTED) {
-
                 Activity activity = (Activity)mWXSDKInstance.getContext();
                 activity.requestPermissions(PERMISSIONS_STORAGE, 101);
+            }
+        }
+    }
+
+    @JSMethod (uiThread = false)
+    public boolean getCameraAndAudioPermissionResult() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (ContextCompat.checkSelfPermission(mWXSDKInstance.getContext(), "android.permission.CAMERA") != PackageManager.PERMISSION_GRANTED
+                    || ContextCompat.checkSelfPermission(mWXSDKInstance.getContext(), "android.permission.RECORD_AUDIO") != PackageManager.PERMISSION_GRANTED) {
                 return false;
             } else {
                 return true;
