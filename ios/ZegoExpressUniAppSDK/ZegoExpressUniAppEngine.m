@@ -292,7 +292,7 @@ WX_EXPORT_METHOD_SYNC(@selector(enableHardwareDecoder:))
 }
 
 WX_EXPORT_METHOD(@selector(sendCustomCommand:command:toUserList:callback:))
-- (void)sendCustomCommand:(NSString *)roomID command:(NSString *)command toUserList:(nullable NSArray<NSDictionary *> *)toUserList  callback:(nullable WXModuleCallback)callback {
+- (void)sendCustomCommand:(NSString *)roomID command:(NSString *)command toUserList:(nullable NSArray<NSDictionary *> *)toUserList  callback:(nullable WXModuleKeepAliveCallback)callback {
     
     NSMutableArray<ZegoUser *> *toUserListFinal = [NSMutableArray array];
     for (NSDictionary *userDict in toUserList) {
@@ -310,7 +310,7 @@ WX_EXPORT_METHOD(@selector(sendCustomCommand:command:toUserList:callback:))
     
     [[ZegoExpressEngine sharedEngine] sendCustomCommand:command toUserList:toUserListFinal roomID:roomID callback:^(int errorCode) {
         if (callback) {
-            callback(@(errorCode));
+            callback(@(errorCode), NO);
         }
     }];
 }
