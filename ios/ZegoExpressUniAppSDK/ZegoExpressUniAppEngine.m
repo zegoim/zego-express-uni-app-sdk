@@ -23,6 +23,7 @@ static const NSString *kZegoExpressUniAppEngineEventKey = @"eventKey";
 
 static const NSString *kZegoExpressUniAppEngineResultKey = @"resultKey";
 
+
 WX_EXPORT_METHOD(@selector(on:callback:))
 - (void)on:(NSString *)event callback:(WXModuleKeepAliveCallback)callback {
     [self.callBackEventDict setValue:callback forKey:event];
@@ -165,6 +166,17 @@ WX_EXPORT_METHOD(@selector(setStreamExtraInfo:channel:callback:))
     }];
 }
 
+WX_EXPORT_METHOD(@selector(takePublishStreamSnapshot:channel:))
+- (void)takePublishStreamSnapshot:(WXModuleKeepAliveCallback)callback channel:(NSInteger)channel {
+    [[ZegoExpressEngine sharedEngine] takePublishStreamSnapshot:^(int errorCode, ZGImage * _Nullable image) {
+        if (callback) {
+            callback(@{@"errorCode":@(errorCode),
+                       @"image":image},
+                     NO);
+        }
+    } channel:(ZegoPublishChannel)channel];
+}
+
 #pragma mark - 拉流相关
 WX_EXPORT_METHOD_SYNC(@selector(setVideoConfig:channel:))
 - (void)setVideoConfig:(NSDictionary *)config channel:(NSInteger)channel {
@@ -279,16 +291,6 @@ WX_EXPORT_METHOD_SYNC(@selector(enableHardwareDecoder:))
     [[ZegoExpressEngine sharedEngine] enableHardwareDecoder:enable];
 }
 
-WX_EXPORT_METHOD_SYNC(@selector(enableCamera:))
-- (void)enableCamera:(BOOL)enable channel:(NSInteger)channel {
-    [[ZegoExpressEngine sharedEngine] enableCamera:enable channel:channel];
-}
-
-WX_EXPORT_METHOD_SYNC(@selector(useFrontCamera:channel:))
-- (void)useFrontCamera:(BOOL)enable channel:(int)channel {
-    [[ZegoExpressEngine sharedEngine] useFrontCamera:enable channel:channel];
-}
-
 WX_EXPORT_METHOD(@selector(sendCustomCommand:command:toUserList:callback:))
 - (void)sendCustomCommand:(NSString *)roomID command:(NSString *)command toUserList:(nullable NSArray<NSDictionary *> *)toUserList  callback:(nullable WXModuleCallback)callback {
     
@@ -311,6 +313,32 @@ WX_EXPORT_METHOD(@selector(sendCustomCommand:command:toUserList:callback:))
             callback(@(errorCode));
         }
     }];
+}
+
+#pragma mark - 设备控制相关
+
+WX_EXPORT_METHOD_SYNC(@selector(muteMicrophone:))
+- (void)muteMicrophone:(BOOL)mute {
+    WXLogInfo(@"API:muteMic:%d", mute);
+    [[ZegoExpressEngine sharedEngine] muteMicrophone:mute];
+}
+
+WX_EXPORT_METHOD_SYNC(@selector(muteSpeaker:))
+- (void)muteSpeaker:(BOOL)mute {
+    WXLogInfo(@"API:muteSpeaker:%d", mute);
+    [[ZegoExpressEngine sharedEngine] muteSpeaker:mute];
+}
+
+WX_EXPORT_METHOD_SYNC(@selector(enableCamera:channel:))
+- (void)enableCamera:(BOOL)enable channel:(NSInteger)channel {
+    WXLogInfo(@"API:enableCamera:%d,channel:%d", enable, channel);
+    [[ZegoExpressEngine sharedEngine] enableCamera:enable channel:channel];
+}
+
+WX_EXPORT_METHOD_SYNC(@selector(useFrontCamera:channel:))
+- (void)useFrontCamera:(BOOL)enable channel:(int)channel {
+    WXLogInfo(@"API:useFrontCamera:%d,channel:%d", enable, channel);
+    [[ZegoExpressEngine sharedEngine] useFrontCamera:enable channel:channel];
 }
 
 #pragma mark - EventHandler
