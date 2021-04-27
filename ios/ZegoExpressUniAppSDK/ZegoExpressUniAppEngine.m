@@ -169,9 +169,16 @@ WX_EXPORT_METHOD(@selector(setStreamExtraInfo:channel:callback:))
 WX_EXPORT_METHOD(@selector(takePublishStreamSnapshot:channel:))
 - (void)takePublishStreamSnapshot:(WXModuleKeepAliveCallback)callback channel:(NSInteger)channel {
     [[ZegoExpressEngine sharedEngine] takePublishStreamSnapshot:^(int errorCode, ZGImage * _Nullable image) {
+        NSString *imgBase64Str = nil;
+        
+        if (image) {
+            NSData *imgData = UIImageJPEGRepresentation(image, 0.7);
+            imgBase64Str = [imgData base64EncodedStringWithOptions:0];
+        }
+        
         if (callback) {
             callback(@{@"errorCode":@(errorCode),
-                       @"image":image},
+                       @"imageBase64":imgBase64Str?:NSNull.null},
                      NO);
         }
     } channel:(ZegoPublishChannel)channel];
