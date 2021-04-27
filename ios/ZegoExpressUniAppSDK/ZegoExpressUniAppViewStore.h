@@ -2,7 +2,7 @@
 //  ZegoExpressUniAppViewStore.h
 //  ZegoExpressUniAppSDK
 //
-//  Created by joey on 2020/12/2.
+//  Created by zego on 2020/12/2.
 //
 
 #import <Foundation/Foundation.h>
