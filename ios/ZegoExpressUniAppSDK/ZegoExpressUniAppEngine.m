@@ -36,7 +36,6 @@ WX_EXPORT_METHOD_SYNC(@selector(createEngine:appSign:isTestEnv:scenario:))
                    isTestEnv:(BOOL)isTestEnv
                    scenario:(int)scenario {
     [ZegoExpressEngine createEngineWithAppID:(unsigned int)appID appSign:appSign isTestEnv:isTestEnv scenario:scenario eventHandler:self];
-    [[ZegoExpressEngine sharedEngine] setEventHandler:self];
 }
 
 WX_EXPORT_METHOD_SYNC(@selector(destroyEngine:))
