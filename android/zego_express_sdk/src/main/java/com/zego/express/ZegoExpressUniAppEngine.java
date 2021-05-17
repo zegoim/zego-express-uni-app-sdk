@@ -719,7 +719,7 @@ public class ZegoExpressUniAppEngine extends UniModule {
             @Override
             public void onIMSendCustomCommandResult(int i) {
                 if (callback != null) {
-                    callback.invoke(true);
+                    callback.invoke(i);
                 }
             }
         });
