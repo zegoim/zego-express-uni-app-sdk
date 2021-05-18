@@ -277,9 +277,10 @@ WX_EXPORT_METHOD_SYNC(@selector(setCaptureVolume:))
     [[ZegoExpressEngine sharedEngine] setCaptureVolume:(int)volume];
 }
 
-WX_EXPORT_METHOD_SYNC(@selector(setPlayVolume:))
-- (void)setPlayVolume:(NSInteger)volume streamID:(NSString *)streamID {
-    [[ZegoExpressEngine sharedEngine] setPlayVolume:(int)volume streamID:streamID];
+WX_EXPORT_METHOD_SYNC(@selector(setPlayVolume:volume:))
+- (void)setPlayVolume:(NSString *)streamID volume:(int)volume {
+    NSLog(@"volume: %d, stremID: %@", volume, streamID);
+    [[ZegoExpressEngine sharedEngine] setPlayVolume:volume streamID:streamID];
 }
 
 WX_EXPORT_METHOD_SYNC(@selector(mutePlayStreamAudio:streamID:))
