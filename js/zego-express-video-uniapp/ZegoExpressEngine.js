@@ -332,7 +332,9 @@ export default class ZegoExpressEngine {
     setVideoConfig(config, channel = ZegoPublishChannel.Main){
         ZegoExpressEngineImpl.getInstance().setVideoConfig(config, channel);
     }
-
+	
+	
+	
 	/**
      * Gets the current video configurations (for the specified channel).
      *
@@ -511,6 +513,45 @@ export default class ZegoExpressEngine {
 	 */
 	sendCustomCommand(roomID, command, toUserList, callback) {
 		ZegoExpressEngineImpl.getInstance().sendCustomCommand(roomID, command, toUserList, callback);
+	}
+	
+	/**
+	 * Mutes or unmutes the microphone
+	 * 
+	 * This function is used to control whether the collected audio data is used. When the microphone is muted (disabled), the data is collected and discarded, and the microphone is still occupied
+	 * The microphone is still occupied because closing or opening the microphone on the hardware is a relatively heavy operation, and real users may have frequent operations. For trade-off reasons, this function simply discards the collected data.
+	 *
+	 * If you really want SDK to give up occupy the microphone, you can call the [enableAudioCaptureDevice] function.
+	 * Developers who want to control whether to use microphone on the UI should use this function to avoid unnecessary performance overhead by using the [enableAudioCaptureDevice]
+	 * 
+	 * @param mute Whether to mute (disable) the microphone, YES: mute (disable) microphone, NO: enable microphone. The default is NO.
+	 */
+	muteMicrophone(mute){
+		ZegoExpressEngineImpl.getInstance().muteMicrophone(mute);
+	}
+	
+	/**
+	 * Mutes or unmutes the audio output speaker.
+	 *
+	 * After mute speaker, all the SDK sounds will not play, including playing stream, mediaplayer, etc. But the SDK will still occupy the output device.
+	 *
+	 * @param mute Whether to mute (disable) speaker audio output, YES: mute (disable) speaker audio output, NO: enable speaker audio output. The default value is NO
+	 */
+	muteSpeaker(mute){
+		ZegoExpressEngineImpl.getInstance().muteSpeaker(mute);
+	}
+	
+	/**
+	 *  Take a snapshot of the publishing stream (for the specified channel).
+	 *
+	 * Please call this function after calling [startPublishingStream] or [startPreview]
+	 * The resolution of the snapshot is the encoding resolution set in [setVideoConfig]. If you need to change it to capture resolution, please call [setCapturePipelineScaleMode] to change the capture pipeline scale mode to [Post]
+	 *
+	 * @param callback Results of take publish stream snapshot
+	 * @param channel Publish stream channel 
+	 */
+	takePublishStreamSnapshot(callback,channel = ZegoPublishChannel.Main){
+		ZegoExpressEngineImpl.getInstance().takePublishStreamSnapshot(callback,channel);
 	}
 	
 }

@@ -218,5 +218,17 @@ export default class ZegoExpressEngineImpl {
 	sendCustomCommand(roomID, command, toUserList, callback) {
 		nativeEngine.sendCustomCommand(roomID, command, toUserList, callback);
 	}
+	
+	muteMicrophone(mute){
+		nativeEngine.muteMicrophone(mute);
+	}
+	
+	muteSpeaker(mute){
+		nativeEngine.muteSpeaker(mute);
+	}
+	
+	takePublishStreamSnapshot(callback,channel = ZegoPublishChannel.Main){
+		nativeEngine.takePublishStreamSnapshot(callback,channel);
+	}
 
 }

@@ -1,18 +1,27 @@
 package com.zego.express;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Application;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.os.Build;
-import android.support.annotation.Nullable;
+import android.os.Looper;
 import android.support.v4.content.ContextCompat;
+import android.util.Base64;
+import android.util.Log;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.taobao.weex.annotation.JSMethod;
 import com.taobao.weex.bridge.JSCallback;
+import com.taobao.weex.dom.binding.JSONUtils;
 
+import org.json.JSONException;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -24,6 +33,7 @@ import im.zego.zegoexpress.callback.IZegoEventHandler;
 import im.zego.zegoexpress.callback.IZegoIMSendCustomCommandCallback;
 import im.zego.zegoexpress.callback.IZegoMediaPlayerLoadResourceCallback;
 import im.zego.zegoexpress.callback.IZegoPublisherSetStreamExtraInfoCallback;
+import im.zego.zegoexpress.callback.IZegoPublisherTakeSnapshotCallback;
 import im.zego.zegoexpress.constants.ZegoAudioCaptureStereoMode;
 import im.zego.zegoexpress.constants.ZegoAudioChannel;
 import im.zego.zegoexpress.constants.ZegoAudioCodecID;
@@ -84,17 +94,20 @@ public class ZegoExpressUniAppEngine extends UniModule {
     }
 
     @JSMethod (uiThread = false)
-    public void createEngine(Integer appID, String appSign, boolean isTestEnv, int scenario) {
+    public void createEngine(long appID, String appSign, boolean isTestEnv, int scenario) {
         JSONObject param = new JSONObject();
         param.put("appSign", appSign);
         param.put("info", "触发了原生的create调用");
         param.put("appID", appID);
         sendEvent("", param);
-        ZegoExpressEngine.createEngine(appID.longValue(), appSign, isTestEnv, ZegoScenario.getZegoScenario(scenario), (Application) this.mWXSDKInstance.getContext().getApplicationContext(), new IZegoEventHandler() {
+        Log.i("createEngine-AppID", String.valueOf(appID));
+        Log.i("createEngine-Sign", String.valueOf(appSign));
+
+        ZegoExpressEngine.createEngine(appID, appSign, isTestEnv, ZegoScenario.getZegoScenario(scenario), (Application) this.mWXSDKInstance.getContext().getApplicationContext(), new IZegoEventHandler() {
             @Override
             public void onDebugError(int errorCode, String funcName, String info) {
                 super.onDebugError(errorCode, funcName, info);
-
+                Log.i("createEngine-errorCode", String.valueOf(errorCode));
             }
 
             @Override
@@ -106,6 +119,8 @@ public class ZegoExpressUniAppEngine extends UniModule {
             @Override
             public void onRoomStateUpdate(String roomID, ZegoRoomState state, int errorCode, org.json.JSONObject extendedData) {
                 super.onRoomStateUpdate(roomID, state, errorCode, extendedData);
+
+                Log.i("onRoomStateUpdate",errorCode+"");
 
                 JSONObject map = new JSONObject();
                 map.put("roomID", roomID);
@@ -634,7 +649,6 @@ public class ZegoExpressUniAppEngine extends UniModule {
         ZegoExpressEngine.getEngine().useFrontCamera(enable, ZegoPublishChannel.getZegoPublishChannel(channel));
     }
 
-
     @JSMethod (uiThread = false)
     public JSONObject createMediaPlayer() {
         ZegoMediaPlayer player = ZegoExpressEngine.getEngine().createMediaPlayer();
@@ -725,6 +739,33 @@ public class ZegoExpressUniAppEngine extends UniModule {
         });
     }
 
+    @JSMethod(uiThread = false)
+    public void muteMicrophone(boolean mute){
+        ZegoExpressEngine.getEngine().muteMicrophone(mute);
+    }
+
+    @JSMethod(uiThread = false)
+    public void  muteSpeaker(boolean mute){
+        ZegoExpressEngine.getEngine().muteSpeaker(mute);
+    }
+
+    @JSMethod (uiThread = true)
+    public void takePublishStreamSnapshot(final JSCallback callback,int channel){
+
+        ZegoExpressEngine.getEngine().takePublishStreamSnapshot(new IZegoPublisherTakeSnapshotCallback() {
+            @SuppressLint("LongLogTag")
+            @Override
+            public void onPublisherTakeSnapshotResult(int i, Bitmap bitmap) {
+                JSONObject map = new JSONObject();
+                map.put("errorCode", i);
+                map.put("imageBase64", bitmapToBase64(bitmap));
+                if (callback != null) {
+                     callback.invoke(map);
+                }
+            }
+        }, ZegoPublishChannel.getZegoPublishChannel(channel));
+    }
+
     @JSMethod (uiThread = false)
     public void requestCameraAndAudioPermission() {
         String[] PERMISSIONS_STORAGE = {
@@ -772,5 +813,39 @@ public class ZegoExpressUniAppEngine extends UniModule {
             default:
                 break;
         }
+    }
+
+    /**
+     * bitmap 转base64
+     * @param bitmap
+     * @return
+     */
+    private static String bitmapToBase64(Bitmap bitmap) {
+        String result = null;
+        ByteArrayOutputStream baos = null;
+        try {
+            if (bitmap != null) {
+                baos = new ByteArrayOutputStream();
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+
+                baos.flush();
+                baos.close();
+
+                byte[] bitmapBytes = baos.toByteArray();
+                result = Base64.encodeToString(bitmapBytes, Base64.DEFAULT);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (baos != null) {
+                    baos.flush();
+                    baos.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return result;
     }
 }

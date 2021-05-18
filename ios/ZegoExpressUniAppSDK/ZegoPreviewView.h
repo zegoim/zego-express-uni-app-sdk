@@ -2,7 +2,7 @@
 //  ZegoPreviewView.h
 //  ZegoExpressUniAppSDK
 //
-//  Created by joey on 2020/12/7.
+//  Created by zego on 2020/12/7.
 //
 
 #import "WXComponent.h"
