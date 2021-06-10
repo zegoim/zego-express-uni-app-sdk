@@ -1,0 +1,25 @@
+{
+  "name": "zego-express-engine-video-uniapp",
+  "title": "Zego UniApp SDK",
+  "version": "0.12.0",
+  "description": "UniApp Zego Express Video for Android & iOS",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "scripts": {
+    "build": "rm -rf lib && tsc"
+  },
+  "keywords": [
+    "zego",
+    "express",
+    "sdk",
+    "rtc",
+    "uniapp"
+  ],
+  "author": "zego.im",
+  "license": "MIT",
+  "licenseFilename": "LICENSE",
+  "readmeFilename": "README.md",
+  "dependencies": {
+    "typedoc": "^0.19.2"
+  }
+}

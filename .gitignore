@@ -4,3 +4,10 @@ android/app
 android/zego_express_sdk/.idea
 android/zego_express_sdk/.gradle
 android/zego_express_sdk/libs
+android/zego_express_sdk/src/main/java/com/zego/express/.DS_Store
+android/zego_express_sdk/src/main/java/com/zego/.DS_Store
+.DS_Store
+node_modules
+docs
+lib
+package-lock.json

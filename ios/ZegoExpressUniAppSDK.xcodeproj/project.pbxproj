@@ -12,6 +12,12 @@
 		861ED58725772E15003F12A6 /* ZegoExpressUniAppViewStore.m in Sources */ = {isa = PBXBuildFile; fileRef = 861ED58525772E15003F12A6 /* ZegoExpressUniAppViewStore.m */; };
 		861ED5B3257DD9EE003F12A6 /* ZegoPreviewView.h in Headers */ = {isa = PBXBuildFile; fileRef = 861ED5B1257DD9EE003F12A6 /* ZegoPreviewView.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		861ED5B4257DD9EE003F12A6 /* ZegoPreviewView.m in Sources */ = {isa = PBXBuildFile; fileRef = 861ED5B2257DD9EE003F12A6 /* ZegoPreviewView.m */; };
+		8676BE32266D174E008112ED /* ZegoMediaPlayerView.h in Headers */ = {isa = PBXBuildFile; fileRef = 8676BE30266D174E008112ED /* ZegoMediaPlayerView.h */; };
+		8676BE33266D174E008112ED /* ZegoMediaPlayerView.m in Sources */ = {isa = PBXBuildFile; fileRef = 8676BE31266D174E008112ED /* ZegoMediaPlayerView.m */; };
+		86E7D5632668D6E3001E5143 /* ZegoPublishPreview.h in Headers */ = {isa = PBXBuildFile; fileRef = 86E7D5612668D6E3001E5143 /* ZegoPublishPreview.h */; };
+		86E7D5642668D6E3001E5143 /* ZegoPublishPreview.m in Sources */ = {isa = PBXBuildFile; fileRef = 86E7D5622668D6E3001E5143 /* ZegoPublishPreview.m */; };
+		86E7D5672668D935001E5143 /* ZegoPlayView.h in Headers */ = {isa = PBXBuildFile; fileRef = 86E7D5652668D935001E5143 /* ZegoPlayView.h */; };
+		86E7D5682668D935001E5143 /* ZegoPlayView.m in Sources */ = {isa = PBXBuildFile; fileRef = 86E7D5662668D935001E5143 /* ZegoPlayView.m */; };
 		86F76E60255A8A6B00E390FD /* ZegoExpressEngine.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 86F76E5E255A8A6700E390FD /* ZegoExpressEngine.framework */; };
 		86F76E65255A8AC200E390FD /* ZegoExpressUniAppEngine.h in Headers */ = {isa = PBXBuildFile; fileRef = 86F76E63255A8AC200E390FD /* ZegoExpressUniAppEngine.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		86F76E66255A8AC200E390FD /* ZegoExpressUniAppEngine.m in Sources */ = {isa = PBXBuildFile; fileRef = 86F76E64255A8AC200E390FD /* ZegoExpressUniAppEngine.m */; };
@@ -25,6 +31,12 @@
 		861ED58525772E15003F12A6 /* ZegoExpressUniAppViewStore.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ZegoExpressUniAppViewStore.m; sourceTree = "<group>"; };
 		861ED5B1257DD9EE003F12A6 /* ZegoPreviewView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ZegoPreviewView.h; sourceTree = "<group>"; };
 		861ED5B2257DD9EE003F12A6 /* ZegoPreviewView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ZegoPreviewView.m; sourceTree = "<group>"; };
+		8676BE30266D174E008112ED /* ZegoMediaPlayerView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ZegoMediaPlayerView.h; sourceTree = "<group>"; };
+		8676BE31266D174E008112ED /* ZegoMediaPlayerView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ZegoMediaPlayerView.m; sourceTree = "<group>"; };
+		86E7D5612668D6E3001E5143 /* ZegoPublishPreview.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ZegoPublishPreview.h; sourceTree = "<group>"; };
+		86E7D5622668D6E3001E5143 /* ZegoPublishPreview.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ZegoPublishPreview.m; sourceTree = "<group>"; };
+		86E7D5652668D935001E5143 /* ZegoPlayView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ZegoPlayView.h; sourceTree = "<group>"; };
+		86E7D5662668D935001E5143 /* ZegoPlayView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ZegoPlayView.m; sourceTree = "<group>"; };
 		86F76E35255A832A00E390FD /* ZegoExpressUniAppSDK.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = ZegoExpressUniAppSDK.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		86F76E39255A832A00E390FD /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		86F76E5E255A8A6700E390FD /* ZegoExpressEngine.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = ZegoExpressEngine.framework; sourceTree = "<group>"; };
@@ -76,6 +88,12 @@
 				86F76FD3255B85CA00E390FD /* ZegoView.m */,
 				861ED5B1257DD9EE003F12A6 /* ZegoPreviewView.h */,
 				861ED5B2257DD9EE003F12A6 /* ZegoPreviewView.m */,
+				86E7D5652668D935001E5143 /* ZegoPlayView.h */,
+				86E7D5662668D935001E5143 /* ZegoPlayView.m */,
+				86E7D5612668D6E3001E5143 /* ZegoPublishPreview.h */,
+				86E7D5622668D6E3001E5143 /* ZegoPublishPreview.m */,
+				8676BE30266D174E008112ED /* ZegoMediaPlayerView.h */,
+				8676BE31266D174E008112ED /* ZegoMediaPlayerView.m */,
 			);
 			path = ZegoExpressUniAppSDK;
 			sourceTree = "<group>";
@@ -87,8 +105,11 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8676BE32266D174E008112ED /* ZegoMediaPlayerView.h in Headers */,
 				3319E508263819CA00A34E07 /* ZegoExpressUniAppSDK.h in Headers */,
+				86E7D5672668D935001E5143 /* ZegoPlayView.h in Headers */,
 				86F76E65255A8AC200E390FD /* ZegoExpressUniAppEngine.h in Headers */,
+				86E7D5632668D6E3001E5143 /* ZegoPublishPreview.h in Headers */,
 				86F76FD4255B85CA00E390FD /* ZegoView.h in Headers */,
 				861ED5B3257DD9EE003F12A6 /* ZegoPreviewView.h in Headers */,
 				861ED58625772E15003F12A6 /* ZegoExpressUniAppViewStore.h in Headers */,
@@ -164,8 +185,11 @@
 			files = (
 				86F76E66255A8AC200E390FD /* ZegoExpressUniAppEngine.m in Sources */,
 				86F76FD5255B85CA00E390FD /* ZegoView.m in Sources */,
+				86E7D5642668D6E3001E5143 /* ZegoPublishPreview.m in Sources */,
 				861ED5B4257DD9EE003F12A6 /* ZegoPreviewView.m in Sources */,
 				861ED58725772E15003F12A6 /* ZegoExpressUniAppViewStore.m in Sources */,
+				86E7D5682668D935001E5143 /* ZegoPlayView.m in Sources */,
+				8676BE33266D174E008112ED /* ZegoMediaPlayerView.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -295,7 +319,7 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				DEFINES_MODULE = YES;
-				DEVELOPMENT_TEAM = E55TFQ2S65;
+				DEVELOPMENT_TEAM = Y98YBP7T6D;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
@@ -304,7 +328,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/ZegoExpressUniAppSDK",
 				);
-				HEADER_SEARCH_PATHS = "\"$(SRCROOT)/../../SDK/inc\"/**";
+				HEADER_SEARCH_PATHS = "\"$(SRCROOT)/../../../zego/uniapp/latest/3.1.12/iOSSDK@3.1.12.80425_20210428/SDK/inc\"/**";
 				INFOPLIST_FILE = ZegoExpressUniAppSDK/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
@@ -314,6 +338,7 @@
 					"@loader_path/Frameworks",
 				);
 				MACH_O_TYPE = staticlib;
+				MARKETING_VERSION = 1.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.zego.ZegoExpressUniAppSDK;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;
@@ -327,7 +352,7 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				DEFINES_MODULE = YES;
-				DEVELOPMENT_TEAM = E55TFQ2S65;
+				DEVELOPMENT_TEAM = Y98YBP7T6D;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
@@ -336,7 +361,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/ZegoExpressUniAppSDK",
 				);
-				HEADER_SEARCH_PATHS = "\"$(SRCROOT)/../../SDK/inc\"/**";
+				HEADER_SEARCH_PATHS = "\"$(SRCROOT)/../../../zego/uniapp/latest/3.1.12/iOSSDK@3.1.12.80425_20210428/SDK/inc\"/**";
 				INFOPLIST_FILE = ZegoExpressUniAppSDK/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
@@ -346,6 +371,7 @@
 					"@loader_path/Frameworks",
 				);
 				MACH_O_TYPE = staticlib;
+				MARKETING_VERSION = 1.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.zego.ZegoExpressUniAppSDK;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;
