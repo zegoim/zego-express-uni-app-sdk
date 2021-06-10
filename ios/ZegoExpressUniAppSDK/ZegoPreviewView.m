@@ -40,7 +40,7 @@
 
 - (void)viewDidLoad {
     ZegoCanvas *canvas = [ZegoCanvas canvasWithView:self.view];
-    canvas.viewMode = ZegoViewModeAspectFill;
+    canvas.viewMode = self.viewMode;
     
     [[ZegoExpressUniAppViewStore sharedInstance].previewViewDict setObject:canvas forKey:@(self.channel).stringValue];
 

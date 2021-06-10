@@ -23,6 +23,7 @@ static ZegoExpressUniAppViewStore *sharedInstance = nil;
         sharedInstance = [[ZegoExpressUniAppViewStore alloc] init];
         sharedInstance.playViewDict = [NSMutableDictionary dictionary];
         sharedInstance.previewViewDict = [NSMutableDictionary dictionary];
+        sharedInstance.mediaPlayerViewDic = [NSMutableDictionary dictionary];
     });
     return sharedInstance;
 }

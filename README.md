@@ -14,7 +14,7 @@
 
 ## 获取「ZegoExpressEngine」uniapp SDK，并引入工程
 
-在uniaapp市场获取本插件，并将插件引入工程
+在uniapp市场获取本插件，并将插件引入工程
 
 ## 下载「js封装层」代码，并引入工程
 下载地址
@@ -115,12 +115,12 @@ instance.startPlayingStream(streamID); //拉流的streamID来自于事件'roomSt
 
 #### 拉流
 
-如果启用视频功能，拉流播放的时候需保证<template>标签内有相应的<zego-view>标签，该标签内需绑定相应流的streamID，此标签会在原生端生成对应的view，展示拉流的画面
+如果启用视频功能，拉流播放的时候需保证 `<template>` 标签内有相应的 `<zego-remote-view>` 标签，该标签内需绑定相应流的streamID，此标签会在原生端生成对应的view，展示拉流的画面
 使用示例：
 
-```javascript
+```HTML
 <template>
-	<zego-view :streamID="stream.streamID" style="margin-top: 0rpx;margin-left: 10rpx;width:200rpx;height:300rpx"></zego-view>
+  <zego-remote-view v-if="engine" :streamID="playStreamID" style="height: 403.84rpx;flex: 1">
 </template>
 
 js部分:
@@ -129,21 +129,20 @@ instance.startPlayingStream(stream.streamID);
 ```
 
 #### 预览
-预览的时候需保证<template>标签内有相应的<zego-preview-view>标签，该标签内可绑定相应的channel(该参数非必填)，channel的概念参考接口[startPreview](https://doc-zh.zego.im/zh/api?doc=Express_Video_SDK_API~ObjectiveC~class~zego-express-engine#start-preview-channel)
+预览的时候需保证 `<template>` 标签内有相应的 `<zego-local-view>` 标签，该标签内可绑定相应的channel(该参数非必填)，channel的概念参考接口[startPreview](https://doc-zh.zego.im/zh/api?doc=Express_Video_SDK_API~ObjectiveC~class~zego-express-engine#start-preview-channel)
 
 此标签会在原生端生成对应的view，展示拉流的画面
 使用示例：
 
-```javascript
+```HTML
 <template>
-	<zego-preview-view style="margin-top: 20rpx;margin-left: 20rpx;width:200rpx;height:300rpx"></zego-preview-view>
+  <zego-local-view v-if="engine" style="height: 403.84rpx;flex: 1;"></zego-local-view>
 </template>
 
 js部分:
 var instance = ZegoExpressEngine.getInstance();
 instance.startPreview();
 ```
-
 
 特别提示：
 
@@ -157,6 +156,11 @@ var instance = ZegoExpressEngine.getInstance();
 var publishStreamID = '123456'
 instance.startPublishingStream(publishStreamID);
 ```
+
+## 运行
+
+本插件是 uniapp 原生插件，需要使用 uniapp 云打包制作自定义调试基座 ，才能保证正常跑通。
+具体可参考 uniapp 官方教程 [uni原生插件使用教程](https://nativesupport.dcloud.net.cn/NativePlugin/use/use)
 
 
 ## 更多功能
@@ -172,7 +176,7 @@ instance.startPublishingStream(publishStreamID);
 [ZegoExpressExample-UniApp](http://zego-public.oss-cn-shanghai.aliyuncs.com/express/example/uniapp/ZegoExpressExample-UniApp.zip)
 
 1. 将Demo导入HBuilderX，修改manifest.json下的AppID(uniapp的AppID)
-2. 修改Demo下./KeyCenter.js 内的AppID、AppSign     (从ZEGO官网获取的)
+2. 修改Demo下./zego-express-video-uniapp/KeyCenter.js 内的AppID、AppSign     (从ZEGO官网获取的)
 3. 导入「ZegoExpressEngine」uniapp SDK
 4. 使用uniapp本地打包/云打包，制定自定义基座
 5. 运行

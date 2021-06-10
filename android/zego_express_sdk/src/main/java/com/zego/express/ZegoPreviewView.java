@@ -4,7 +4,6 @@ import android.support.annotation.NonNull;
 import android.util.Log;
 import android.view.TextureView;
 
-import com.taobao.weex.utils.WXLogUtils;
 
 import java.util.Map;
 
@@ -47,7 +46,7 @@ public class ZegoPreviewView extends UniComponent<TextureView> {
     protected void onHostViewInitialized(TextureView host) {
         super.onHostViewInitialized(host);
         ZegoCanvas canvas = new ZegoCanvas(getHostView());
-
+        Log.e("ZegoPreviewView", "2222222222222" );
         canvas.viewMode = ZegoViewMode.getZegoViewMode(this.viewMode);
         ZegoExpressUniAppEngine.previewViewMap.put(channel.toString(), canvas);
         engine.startPreview(canvas);
@@ -57,6 +56,7 @@ public class ZegoPreviewView extends UniComponent<TextureView> {
     @Override
     public void destroy() {
         super.destroy();
+        Log.e("ZegoPreviewView", "555555555555" );
         if (ZegoExpressEngine.getEngine() != null) {
             engine.stopPreview(ZegoPublishChannel.getZegoPublishChannel(channel));
             ZegoExpressUniAppEngine.previewViewMap.remove(channel.toString());
@@ -75,11 +75,13 @@ public class ZegoPreviewView extends UniComponent<TextureView> {
 
     @Override
     public void updateAttrs(Map<String, Object> attrs) {
+        Log.e("ZegoPreviewView", "44444444444" );
         super.updateAttrs(attrs);
     }
 
     @Override
     protected void onCreate() {
+        Log.e("ZegoPreviewView", "3333333333333" );
         super.onCreate();
     }
 }

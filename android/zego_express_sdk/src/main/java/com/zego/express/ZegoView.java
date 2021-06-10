@@ -50,7 +50,7 @@ public class ZegoView extends UniComponent<TextureView> {
 
     @Override
     protected TextureView initComponentHostView(@NonNull Context context) {
-        return new TextureView(getInstance().getContext());
+        return new TextureView(context);
     }
 
     @Override

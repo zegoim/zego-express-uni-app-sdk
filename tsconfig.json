@@ -1,0 +1,32 @@
+{
+  "compilerOptions": {
+    "baseUrl": "./src",
+    "target": "esnext",
+    "module": "esnext",
+    "strict": true,
+    "jsx": "preserve",
+    "importHelpers": true,
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "declaration": true,
+    "declarationDir": "./lib",
+    "outDir": "./lib",
+    "lib": [
+      "esnext",
+    ]
+  },
+  "include": [
+	  "./src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "unpackage",
+    "src/**/*.nvue"
+  ],
+  "typedocOptions": {
+    "ignoreCompilerErrors": true,
+    "mode": "modules",
+    "out": "./docs"
+  }
+}

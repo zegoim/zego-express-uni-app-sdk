@@ -14,6 +14,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property (nonatomic, strong, readwrite) NSMutableDictionary<NSString*, ZegoCanvas*> *playViewDict;
 @property (nonatomic, strong, readwrite) NSMutableDictionary<NSString*, ZegoCanvas*> *previewViewDict;
+@property (nonatomic, strong, readwrite) NSMutableDictionary<NSString*, ZegoCanvas*> *mediaPlayerViewDic;
 
 + (instancetype)sharedInstance;
 
