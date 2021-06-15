@@ -90,7 +90,7 @@ UNI_EXPORT_METHOD(@selector(callMethod:callback:))
 #pragma mark - Engine
 - (void)createEngine:(NSDictionary *)params callback:(UniModuleKeepAliveCallback)callback {
     unsigned int appID = [params[@"appID"] unsignedIntValue];
-    NSString *appSign = [params[@"appSign"] stringValue];
+    NSString *appSign = params[@"appSign"];
     BOOL isTestEnv = [params[@"isTestEnv"] boolValue];
     ZegoScenario scenario = [params[@"scenario"] unsignedIntValue];
     
@@ -151,7 +151,7 @@ UNI_EXPORT_METHOD(@selector(callMethod:callback:))
 
 #pragma mark - 房间
 - (void)loginRoom:(NSDictionary *)params callback:(UniModuleKeepAliveCallback)callback {
-    NSString *roomID = [params[@"roomID"] stringValue];
+    NSString *roomID = params[@"roomID"];
     NSDictionary *user = params[@"user"];
     NSDictionary *config = params[@"config"];
     
@@ -180,7 +180,7 @@ UNI_EXPORT_METHOD(@selector(callMethod:callback:))
 }
 
 - (void)loginMultiRoom:(NSDictionary *)params callback:(UniModuleKeepAliveCallback)callback {
-    NSString *roomID = [params[@"roomID"] stringValue];
+    NSString *roomID = params[@"roomID"];
     NSDictionary *config = params[@"config"];
     
     ZegoRoomConfig *roomConfig = [ZegoRoomConfig defaultConfig];
@@ -200,8 +200,8 @@ UNI_EXPORT_METHOD(@selector(callMethod:callback:))
 }
 
 - (void)switchRoom:(NSDictionary *)params callback:(UniModuleKeepAliveCallback)callback {
-    NSString *fromRoomID = [params[@"fromRoomID"] stringValue];
-    NSString *toRoomID = [params[@"toRoomID"] stringValue];
+    NSString *fromRoomID = params[@"fromRoomID"];
+    NSString *toRoomID = params[@"toRoomID"];
     NSDictionary *config = params[@"config"];
 
     if (config && [config isKindOfClass:[NSDictionary class]]) {
@@ -223,9 +223,9 @@ UNI_EXPORT_METHOD(@selector(callMethod:callback:))
 }
 
 - (void)setRoomExtraInfo:(NSDictionary *)params callback:(UniModuleKeepAliveCallback)callback {
-    NSString *value = [params[@"value"] stringValue];
-    NSString *key = [params[@"key"] stringValue];
-    NSString *roomID = [params[@"roomID"] stringValue];
+    NSString *value = params[@"value"];
+    NSString *key = params[@"key"];
+    NSString *roomID = params[@"roomID"];
     
     [[ZegoExpressEngine sharedEngine] setRoomExtraInfo:value forKey:key roomID:roomID callback:^(int errorCode) {
         [self callbackNotNull:callback data:@(errorCode)];
@@ -235,7 +235,7 @@ UNI_EXPORT_METHOD(@selector(callMethod:callback:))
 #pragma mark - Publisher
 
 - (void)startPublishingStream:(NSDictionary *)params callback:(UniModuleKeepAliveCallback)callback {
-    NSString *streamID = [params[@"streamID"] stringValue];
+    NSString *streamID = params[@"streamID"];
     ZegoPublishChannel channel = [params[@"channel"] unsignedIntegerValue];
     [[ZegoExpressEngine sharedEngine] startPublishingStream:streamID channel:channel];
     [self callbackNotNull:callback];
@@ -375,7 +375,7 @@ UNI_EXPORT_METHOD(@selector(callMethod:callback:))
 }
 
 - (void)setPublishStreamEncryptionKey:(NSDictionary *)params callback:(UniModuleKeepAliveCallback)callback {
-    NSString *key = [params[@"key"] stringValue];
+    NSString *key = params[@"key"];
     ZegoPublishChannel channel = [params[@"channel"] integerValue];
     
     [[ZegoExpressEngine sharedEngine] setPublishStreamEncryptionKey:key channel:channel];
@@ -448,8 +448,8 @@ UNI_EXPORT_METHOD(@selector(callMethod:callback:))
 }
 
 - (void)addPublishCdnUrl:(NSDictionary *)params callback:(UniModuleKeepAliveCallback)callback {
-    NSString *targetURL = [params[@"targetURL"] stringValue];
-    NSString *streamID = [params[@"streamID"] stringValue];
+    NSString *targetURL = params[@"targetURL"];
+    NSString *streamID = params[@"streamID"];
     
     [[ZegoExpressEngine sharedEngine] addPublishCdnUrl:targetURL streamID:streamID callback:^(int errorCode) {
         [self callbackNotNull:callback data:@(errorCode)];
@@ -457,8 +457,8 @@ UNI_EXPORT_METHOD(@selector(callMethod:callback:))
 }
 
 - (void)removePublishCdnUrl:(NSDictionary *)params callback:(UniModuleKeepAliveCallback)callback {
-    NSString *targetURL = [params[@"targetURL"] stringValue];
-    NSString *streamID = [params[@"streamID"] stringValue];
+    NSString *targetURL = params[@"targetURL"];
+    NSString *streamID = params[@"streamID"];
     
     [[ZegoExpressEngine sharedEngine] removePublishCdnUrl:targetURL streamID:streamID callback:^(int errorCode) {
         [self callbackNotNull:callback data:@(errorCode)];
@@ -471,10 +471,10 @@ UNI_EXPORT_METHOD(@selector(callMethod:callback:))
     NSDictionary *config = params[@"config"];
     ZegoCDNConfig *cdnConfig = [[ZegoCDNConfig alloc] init];
     if (config[@"url"]) {
-        cdnConfig.url = [config[@"url"] stringValue];
+        cdnConfig.url = config[@"url"];
     }
     if (config[@"authParam"]) {
-        cdnConfig.authParam = [config[@"authParam"] stringValue];
+        cdnConfig.authParam = config[@"authParam"];
     }
     
     [[ZegoExpressEngine sharedEngine] enablePublishDirectToCDN:enable config:cdnConfig channel:channel];
@@ -485,7 +485,7 @@ UNI_EXPORT_METHOD(@selector(callMethod:callback:))
     BOOL isPreviewVisible = [params[@"isPreviewVisible"] boolValue];
     ZegoPublishChannel channel = [params[@"channel"] integerValue];
     NSDictionary *mark = params[@"watermark"];
-    NSString *imageURL = [mark[@"imageURL"] stringValue];
+    NSString *imageURL = mark[@"imageURL"];
     CGRect layout = CGRectMake([mark[@"layout"][@"x"] floatValue],
                                [mark[@"layout"][@"y"] floatValue],
                                [mark[@"layout"][@"width"] floatValue],
@@ -1523,7 +1523,7 @@ UNI_EXPORT_METHOD(@selector(callMethod:callback:))
     ZegoAudioEffectPlayer *player = self.audioEffectPlayerDict[@(playerID).stringValue];
     if (player) {
         unsigned int audioEffectID = [params[@"audioEffectID"] unsignedIntValue];
-        NSString *path = [params[@"path"] stringValue];
+        NSString *path = params[@"path"];
         [player loadResource:path audioEffectID:audioEffectID callback:^(int errorCode) {
             [self callbackNotNull:callback data:@(errorCode)];
         }];

@@ -11,6 +11,9 @@
 #import "ZegoExpressUniAppEngine.h"
 #import "ZegoView.h"
 #import "ZegoPreviewView.h"
+#import "ZegoPublishPreview.h"
+#import "ZegoPlayView.h"
+#import "ZegoMediaPlayerView.h"
 #import "ZegoExpressUniAppViewStore.h"
 
 #endif /* ZegoExpressUniAppSDK_h */
