@@ -875,7 +875,7 @@ UNI_EXPORT_METHOD(@selector(callMethod:callback:))
             @"user": @{@"userID": obj.user.userID, @"userName": obj.user.userName}
         }];
     }];
-    [self sendEvent:kZegoExpressUniAppEngineEventRoomStreamUpdate, roomID, streamArray, nil];
+    [self sendEvent:kZegoExpressUniAppEngineEventRoomStreamExtraInfoUpdate, roomID, streamArray, nil];
 }
 
 - (void)onPublisherStateUpdate:(ZegoPublisherState)state errorCode:(int)errorCode extendedData:(NSDictionary *)extendedData streamID:(NSString *)streamID {
