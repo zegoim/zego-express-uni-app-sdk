@@ -33,7 +33,16 @@
     ZegoCanvas *canvas = [ZegoCanvas canvasWithView:self.view];
     canvas.viewMode = self.viewMode;
     
-    [[ZegoExpressUniAppViewStore sharedInstance].playViewDict setObject:canvas forKey:self.streamID];
+    ZegoPlayStreamStore *store = [ZegoExpressUniAppViewStore.sharedInstance.playViewDict objectForKey:self.streamID];
+    if (!store) {
+        store = [[ZegoPlayStreamStore alloc] init];
+    }
+    store.canvas = canvas;
+    if (store.isPlaying) {
+        [ZegoExpressEngine.sharedEngine startPlayingStream:self.streamID canvas:store.canvas config:store.config];
+    }
+    [ZegoExpressUniAppViewStore.sharedInstance.playViewDict setObject:store forKey:self.streamID];
+    
     if (!canvas) {
         WXLogError(@"请提供有效的view用来预览画面");
         return;
@@ -52,16 +61,21 @@
 - (void)updateAttributes:(NSDictionary *)attributes {
     if (attributes[@"viewMode"]) {
         ZegoViewMode viewMode = [WXConvert NSUInteger: attributes[@"viewMode"]];
-        ZegoCanvas *canvas = [ZegoExpressUniAppViewStore.sharedInstance.playViewDict objectForKey:self.streamID];
-        canvas.viewMode = viewMode;
-        [[ZegoExpressUniAppViewStore sharedInstance].playViewDict setObject:canvas forKey:self.streamID];
+        ZegoPlayStreamStore *store = [ZegoExpressUniAppViewStore.sharedInstance.playViewDict objectForKey:self.streamID];
+        store.canvas.viewMode = viewMode;
+        [[ZegoExpressUniAppViewStore sharedInstance].playViewDict setObject:store forKey:self.streamID];
         self.viewMode = viewMode;
     }
     if (attributes[@"streamID"]) {
         NSString *streamID = [WXConvert NSString:attributes[@"streamID"]];
-        ZegoCanvas *canvas = [ZegoExpressUniAppViewStore.sharedInstance.playViewDict objectForKey:self.streamID];
+        ZegoPlayStreamStore *store = [ZegoExpressUniAppViewStore.sharedInstance.playViewDict objectForKey:self.streamID];
         [[ZegoExpressUniAppViewStore sharedInstance].playViewDict removeObjectForKey:self.streamID];
-        [[ZegoExpressUniAppViewStore sharedInstance].playViewDict setObject:canvas forKey:streamID];
+        [[ZegoExpressUniAppViewStore sharedInstance].playViewDict setObject:store forKey:streamID];
+        
+        if (store.isPlaying) {
+            [ZegoExpressEngine.sharedEngine startPlayingStream:streamID canvas:store.canvas config:store.config];
+        }
+        
         self.streamID = streamID;
     }
 }

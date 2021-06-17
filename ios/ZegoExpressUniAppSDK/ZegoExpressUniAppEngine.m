@@ -535,7 +535,11 @@ UNI_EXPORT_METHOD(@selector(callMethod:callback:))
 - (void)startPlayingStream:(NSDictionary *)params callback:(UniModuleKeepAliveCallback)callback {
     NSString *streamID = [DCUniConvert NSString:params[@"streamID"]];
     NSDictionary *config = params[@"config"];
-    ZegoCanvas *canvas = [[ZegoExpressUniAppViewStore sharedInstance].playViewDict objectForKey:streamID];
+    ZegoPlayStreamStore *store = [[ZegoExpressUniAppViewStore sharedInstance].playViewDict objectForKey:streamID];
+    if (!store) {
+        store = [[ZegoPlayStreamStore alloc] init];
+    }
+    store.isPlaying = YES;
     
     if (config != nil && [config isKindOfClass:[NSDictionary class]]) {
         ZegoPlayerConfig *configP = [[ZegoPlayerConfig alloc] init];
@@ -548,10 +552,13 @@ UNI_EXPORT_METHOD(@selector(callMethod:callback:))
         if (config[@"resourceMode"]) {
             configP.resourceMode = [config[@"resourceMode"] unsignedIntValue];
         }
-        [[ZegoExpressEngine sharedEngine] startPlayingStream:streamID canvas:canvas config:configP];
+        [[ZegoExpressEngine sharedEngine] startPlayingStream:streamID canvas:store.canvas config:configP];
+        store.config = configP;
     } else {
-        [[ZegoExpressEngine sharedEngine] startPlayingStream:streamID canvas:canvas];
+        [[ZegoExpressEngine sharedEngine] startPlayingStream:streamID canvas:store.canvas];
     }
+    [ZegoExpressUniAppViewStore.sharedInstance.playViewDict setObject:store forKey:streamID];
+    
     [self callbackNotNull:callback];
 }
 
@@ -1082,7 +1089,7 @@ UNI_EXPORT_METHOD(@selector(callMethod:callback:))
 - (void)mediaPlayerSetPlayerView:(NSDictionary *)params callback:(UniModuleKeepAliveCallback)callback {
     NSInteger playerID = [params[@"playerID"] integerValue];
     ZegoMediaPlayer *player = self.mediaPlayerDict[@(playerID).stringValue];
-    ZegoCanvas *canvas = ZegoExpressUniAppViewStore.sharedInstance.mediaPlayerViewDic[@(playerID).stringValue];
+    ZegoCanvas *canvas = ZegoExpressUniAppViewStore.sharedInstance.mediaPlayerViewDict[@(playerID).stringValue];
     [player setPlayerCanvas:canvas];
     [self callbackNotNull:callback];
 }

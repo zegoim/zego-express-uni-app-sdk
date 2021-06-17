@@ -10,11 +10,20 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
+@interface ZegoPlayStreamStore : NSObject
+
+@property (nonatomic, strong) ZegoCanvas *canvas;
+@property (nonatomic, strong) ZegoPlayerConfig *config;
+@property (nonatomic, assign) BOOL isPlaying;
+
+@end
+
+
 @interface ZegoExpressUniAppViewStore : NSObject
 
-@property (nonatomic, strong, readwrite) NSMutableDictionary<NSString*, ZegoCanvas*> *playViewDict;
+@property (nonatomic, strong, readwrite) NSMutableDictionary<NSString*, ZegoPlayStreamStore*> *playViewDict;
 @property (nonatomic, strong, readwrite) NSMutableDictionary<NSString*, ZegoCanvas*> *previewViewDict;
-@property (nonatomic, strong, readwrite) NSMutableDictionary<NSString*, ZegoCanvas*> *mediaPlayerViewDic;
+@property (nonatomic, strong, readwrite) NSMutableDictionary<NSString*, ZegoCanvas*> *mediaPlayerViewDict;
 
 + (instancetype)sharedInstance;
 

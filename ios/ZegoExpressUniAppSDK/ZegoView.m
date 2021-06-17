@@ -65,7 +65,12 @@
         if (!self.streamID) {
             WXLogError(@"请设置有效的streamID");
         } else {
-            [[ZegoExpressUniAppViewStore sharedInstance].playViewDict setObject:canvas forKey:self.streamID];
+            ZegoPlayStreamStore *store = [ZegoExpressUniAppViewStore.sharedInstance.playViewDict objectForKey:self.streamID];
+            if (!store) {
+                store = [[ZegoPlayStreamStore alloc] init];
+            }
+            store.canvas = canvas;
+            [[ZegoExpressUniAppViewStore sharedInstance].playViewDict setObject:store forKey:self.streamID];
             [[ZegoExpressEngine sharedEngine] startPlayingStream:self.streamID canvas:canvas];
         }
     }
