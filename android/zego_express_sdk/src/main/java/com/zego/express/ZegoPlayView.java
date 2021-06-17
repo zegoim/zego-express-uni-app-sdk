@@ -80,8 +80,8 @@ public class ZegoPlayView extends UniComponent<View> {
         super.destroy();
         if (ZegoExpressEngine.getEngine() != null) {
             ZegoExpressEngine.getEngine().stopPlayingStream(streamID);
-            ZegoExpressUniAppEngine.playViewMap.remove(streamID);
         }
+        ZegoExpressUniAppEngine.playViewMap.remove(streamID);
     }
 
     @UniComponentProp(name = "viewMode")

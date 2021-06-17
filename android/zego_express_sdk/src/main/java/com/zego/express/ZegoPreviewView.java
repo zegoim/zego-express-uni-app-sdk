@@ -59,8 +59,8 @@ public class ZegoPreviewView extends UniComponent<TextureView> {
         Log.e("ZegoPreviewView", "555555555555" );
         if (ZegoExpressEngine.getEngine() != null) {
             engine.stopPreview(ZegoPublishChannel.getZegoPublishChannel(channel));
-            ZegoExpressUniAppEngine.previewViewMap.remove(channel.toString());
         }
+        ZegoExpressUniAppEngine.previewViewMap.remove(channel.toString());
     }
 
     @UniComponentProp(name = "viewMode")
