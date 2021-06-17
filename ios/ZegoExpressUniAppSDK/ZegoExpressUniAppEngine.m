@@ -8,6 +8,7 @@
 #import "ZegoExpressUniAppEngine.h"
 #import <ZegoExpressEngine/ZegoExpressEngine.h>
 #import "ZegoExpressUniAppViewStore.h"
+#import "DCUniConvert.h"
 
 @interface ZegoExpressUniAppEngine ()<ZegoEventHandler, ZegoApiCalledEventHandler, ZegoMediaPlayerEventHandler>
 
@@ -68,7 +69,7 @@ UNI_EXPORT_METHOD_SYNC(@selector(prefix))
 UNI_EXPORT_METHOD(@selector(callMethod:callback:))
 - (void)callMethod:(NSDictionary *)params callback:(UniModuleKeepAliveCallback)callback {
     
-    NSString *methodName = params[@"method"];
+    NSString *methodName = [DCUniConvert NSString:params[@"method"]];
     if (!methodName) { return; }
     
     NSDictionary *args = params[@"args"];
@@ -89,10 +90,10 @@ UNI_EXPORT_METHOD(@selector(callMethod:callback:))
 
 #pragma mark - Engine
 - (void)createEngine:(NSDictionary *)params callback:(UniModuleKeepAliveCallback)callback {
-    unsigned int appID = [params[@"appID"] unsignedIntValue];
-    NSString *appSign = params[@"appSign"];
-    BOOL isTestEnv = [params[@"isTestEnv"] boolValue];
-    ZegoScenario scenario = [params[@"scenario"] unsignedIntValue];
+    unsigned int appID = (unsigned int)[DCUniConvert NSUInteger:params[@"appID"]];
+    NSString *appSign = [DCUniConvert NSString:params[@"appSign"]];
+    BOOL isTestEnv = [DCUniConvert BOOL:params[@"isTestEnv"]];
+    ZegoScenario scenario = [DCUniConvert NSUInteger:params[@"scenario"]];
     
     [ZegoExpressEngine setApiCalledCallback:self];
     
@@ -129,10 +130,10 @@ UNI_EXPORT_METHOD(@selector(callMethod:callback:))
     if (config && [config isKindOfClass:NSDictionary.class]) {
         ZegoLogConfig *logConfig = [[ZegoLogConfig alloc] init];
         if (config[@"logPath"]) {
-            logConfig.logPath = config[@"logPath"];
+            logConfig.logPath = [DCUniConvert NSString:config[@"logPath"]];
         }
         if (config[@"logSize"]) {
-            logConfig.logSize = [config[@"logSize"] unsignedLongLongValue];
+            logConfig.logSize = [DCUniConvert NSUInteger:config[@"logSize"]];
         }
         [ZegoExpressEngine setLogConfig:logConfig];
     }
@@ -151,48 +152,48 @@ UNI_EXPORT_METHOD(@selector(callMethod:callback:))
 
 #pragma mark - 房间
 - (void)loginRoom:(NSDictionary *)params callback:(UniModuleKeepAliveCallback)callback {
-    NSString *roomID = params[@"roomID"];
+    NSString *roomID = [DCUniConvert NSString:params[@"roomID"]];
     NSDictionary *user = params[@"user"];
     NSDictionary *config = params[@"config"];
     
     if (config && [config isKindOfClass:[NSDictionary class]]) {
         ZegoRoomConfig *roomConfig = [ZegoRoomConfig defaultConfig];
         if (config[@"userUpdate"]) {
-            roomConfig.isUserStatusNotify = [config[@"userUpdate"] boolValue];
+            roomConfig.isUserStatusNotify = [DCUniConvert BOOL:config[@"userUpdate"]];
         }
         if (config[@"maxMemberCount"]) {
-            roomConfig.maxMemberCount = [config[@"maxMemberCount"] intValue];
+            roomConfig.maxMemberCount = (unsigned int)[DCUniConvert NSUInteger:config[@"maxMemberCount"]];
         }
         if (config[@"token"]) {
             roomConfig.token = config[@"token"];
         }
-        [[ZegoExpressEngine sharedEngine] loginRoom:roomID user:[ZegoUser userWithUserID:user[@"userID"] userName:user[@"userName"]] config:roomConfig];
+        [[ZegoExpressEngine sharedEngine] loginRoom:[DCUniConvert NSString:roomID] user:[ZegoUser userWithUserID:[DCUniConvert NSString:user[@"userID"]] userName:[DCUniConvert NSString:user[@"userName"]]] config:roomConfig];
     } else {
-        [[ZegoExpressEngine sharedEngine] loginRoom:roomID user:[ZegoUser userWithUserID:user[@"userID"] userName:user[@"userName"]]];
+        [[ZegoExpressEngine sharedEngine] loginRoom:[DCUniConvert NSString:roomID] user:[ZegoUser userWithUserID:[DCUniConvert NSString:user[@"userID"]] userName:[DCUniConvert NSString:user[@"userName"]]]];
     }
     [self callbackNotNull:callback];
 }
 
 - (void)logoutRoom:(NSDictionary *)params callback:(UniModuleKeepAliveCallback)callback {
-    NSString *roomID = params[@"roomID"];
+    NSString *roomID = [DCUniConvert NSString:params[@"roomID"]];
     [[ZegoExpressEngine sharedEngine] logoutRoom:roomID];
     [self callbackNotNull:callback];
 }
 
 - (void)loginMultiRoom:(NSDictionary *)params callback:(UniModuleKeepAliveCallback)callback {
-    NSString *roomID = params[@"roomID"];
+    NSString *roomID = [DCUniConvert NSString:params[@"roomID"]];
     NSDictionary *config = params[@"config"];
     
     ZegoRoomConfig *roomConfig = [ZegoRoomConfig defaultConfig];
     if (config && [config isKindOfClass:[NSDictionary class]]) {
         if (config[@"userUpdate"]) {
-            roomConfig.isUserStatusNotify = [config[@"userUpdate"] boolValue];
+            roomConfig.isUserStatusNotify = [DCUniConvert BOOL:config[@"userUpdate"]];
         }
         if (config[@"maxMemberCount"]) {
-            roomConfig.maxMemberCount = [config[@"maxMemberCount"] intValue];
+            roomConfig.maxMemberCount = (unsigned int)[DCUniConvert NSUInteger:config[@"maxMemberCount"]];
         }
         if (config[@"token"]) {
-            roomConfig.token = config[@"token"];
+            roomConfig.token = [DCUniConvert NSString:config[@"token"]];
         }
     }
     [[ZegoExpressEngine sharedEngine] loginMultiRoom:roomID config:roomConfig];
@@ -200,20 +201,20 @@ UNI_EXPORT_METHOD(@selector(callMethod:callback:))
 }
 
 - (void)switchRoom:(NSDictionary *)params callback:(UniModuleKeepAliveCallback)callback {
-    NSString *fromRoomID = params[@"fromRoomID"];
-    NSString *toRoomID = params[@"toRoomID"];
+    NSString *fromRoomID = [DCUniConvert NSString:params[@"fromRoomID"]];
+    NSString *toRoomID = [DCUniConvert NSString:params[@"toRoomID"]];
     NSDictionary *config = params[@"config"];
 
     if (config && [config isKindOfClass:[NSDictionary class]]) {
         ZegoRoomConfig *roomConfig = [ZegoRoomConfig defaultConfig];
         if (config[@"userUpdate"]) {
-            roomConfig.isUserStatusNotify = [config[@"userUpdate"] boolValue];
+            roomConfig.isUserStatusNotify = [DCUniConvert BOOL:config[@"userUpdate"]];
         }
         if (config[@"maxMemberCount"]) {
-            roomConfig.maxMemberCount = [config[@"maxMemberCount"] intValue];
+            roomConfig.maxMemberCount = (unsigned int)[DCUniConvert NSUInteger:config[@"maxMemberCount"]];
         }
         if (config[@"token"]) {
-            roomConfig.token = config[@"token"];
+            roomConfig.token = [DCUniConvert NSString:config[@"token"]];
         }
         [[ZegoExpressEngine sharedEngine] switchRoom:fromRoomID toRoomID:toRoomID config:roomConfig];
     } else {
@@ -223,9 +224,9 @@ UNI_EXPORT_METHOD(@selector(callMethod:callback:))
 }
 
 - (void)setRoomExtraInfo:(NSDictionary *)params callback:(UniModuleKeepAliveCallback)callback {
-    NSString *value = params[@"value"];
-    NSString *key = params[@"key"];
-    NSString *roomID = params[@"roomID"];
+    NSString *value = [DCUniConvert NSString:params[@"value"]];
+    NSString *key = [DCUniConvert NSString:params[@"key"]];
+    NSString *roomID = [DCUniConvert NSString:params[@"roomID"]];
     
     [[ZegoExpressEngine sharedEngine] setRoomExtraInfo:value forKey:key roomID:roomID callback:^(int errorCode) {
         [self callbackNotNull:callback data:@(errorCode)];
@@ -235,28 +236,28 @@ UNI_EXPORT_METHOD(@selector(callMethod:callback:))
 #pragma mark - Publisher
 
 - (void)startPublishingStream:(NSDictionary *)params callback:(UniModuleKeepAliveCallback)callback {
-    NSString *streamID = params[@"streamID"];
-    ZegoPublishChannel channel = [params[@"channel"] unsignedIntegerValue];
+    NSString *streamID = [DCUniConvert NSString:params[@"streamID"]];
+    ZegoPublishChannel channel = [DCUniConvert NSUInteger:params[@"channel"]];
     [[ZegoExpressEngine sharedEngine] startPublishingStream:streamID channel:channel];
     [self callbackNotNull:callback];
 }
 
 - (void)stopPublishingStream:(NSDictionary *)params callback:(UniModuleKeepAliveCallback)callback {
-    ZegoPublishChannel channel = [params[@"channel"] unsignedIntegerValue];
+    ZegoPublishChannel channel = [DCUniConvert NSUInteger:params[@"channel"]];
     [[ZegoExpressEngine sharedEngine] stopPublishingStream:channel];
     [self callbackNotNull:callback];
 }
 
 - (void)setStreamExtraInfo:(NSDictionary *)params callback:(UniModuleKeepAliveCallback)callback {
-    NSString *extraInfo = params[@"extraInfo"];
-    ZegoPublishChannel channel = [params[@"channel"] unsignedIntegerValue];
+    NSString *extraInfo = [DCUniConvert NSString:params[@"extraInfo"]];
+    ZegoPublishChannel channel = [DCUniConvert NSUInteger:params[@"channel"]];
     [[ZegoExpressEngine sharedEngine] setStreamExtraInfo:extraInfo channel:channel callback:^(int errorCode) {
         [self callbackNotNull:callback data:@(errorCode)];
     }];
 }
 
 - (void)startPreview:(NSDictionary *)params callback:(UniModuleKeepAliveCallback)callback {
-    ZegoPublishChannel channel = [params[@"channel"] unsignedIntegerValue];
+    ZegoPublishChannel channel = [DCUniConvert NSUInteger:params[@"channel"]];
     ZegoCanvas *canvas = [[ZegoExpressUniAppViewStore sharedInstance].previewViewDict objectForKey:@(channel).stringValue];
 
     [[ZegoExpressEngine sharedEngine] startPreview:canvas channel:channel];
@@ -264,14 +265,14 @@ UNI_EXPORT_METHOD(@selector(callMethod:callback:))
 }
 
 - (void)stopPreview:(NSDictionary *)params callback:(UniModuleKeepAliveCallback)callback {
-    ZegoPublishChannel channel = [params[@"channel"] unsignedIntegerValue];
+    ZegoPublishChannel channel = [DCUniConvert NSUInteger:params[@"channel"]];
     [[ZegoExpressEngine sharedEngine] stopPreview:channel];
     [self callbackNotNull:callback];
 }
 
 - (void)setVideoConfig:(NSDictionary *)params callback:(UniModuleKeepAliveCallback)callback {
     id config = params[@"config"];
-    ZegoPublishChannel channel = [params[@"channel"] unsignedIntegerValue];
+    ZegoPublishChannel channel = [DCUniConvert NSUInteger:params[@"channel"]];
     ZegoVideoConfig *vConfig = [ZegoVideoConfig defaultConfig];
     
     if ([config isKindOfClass:NSNumber.class]) {
@@ -279,20 +280,20 @@ UNI_EXPORT_METHOD(@selector(callMethod:callback:))
         vConfig = [ZegoVideoConfig configWithPreset:preset];
     } else if ([config isKindOfClass:NSDictionary.class]) {
         if (config[@"bitrate"]) {
-            vConfig.bitrate = [config[@"bitrate"] intValue];
+            vConfig.bitrate = (int)[DCUniConvert NSInteger:config[@"bitrate"]];
         }
         if (config[@"fps"]) {
-            vConfig.fps = [config[@"fps"] intValue];
+            vConfig.fps = (int)[DCUniConvert NSInteger:config[@"fps"]];
         }
         if (config[@"codecID"]) {
-            NSInteger codecNumber = [config[@"codecID"] intValue];
+            NSInteger codecNumber = [DCUniConvert NSInteger:config[@"codecID"]];
             vConfig.codecID = codecNumber;
         }
         if (config[@"captureWidth"] && config[@"captureHeight"]) {
-            vConfig.captureResolution = CGSizeMake([config[@"captureWidth"] intValue], [config[@"captureHeight"] intValue]);
+            vConfig.captureResolution = CGSizeMake([DCUniConvert NSInteger:config[@"captureWidth"]], [DCUniConvert NSInteger:config[@"captureHeight"]]);
         }
         if (config[@"encodeWidth"] && config[@"encodeHeight"]) {
-            vConfig.encodeResolution = CGSizeMake([config[@"encodeWidth"] intValue], [config[@"encodeHeight"] intValue]);
+            vConfig.encodeResolution = CGSizeMake([DCUniConvert NSInteger:config[@"encodeWidth"]], [DCUniConvert NSInteger:config[@"encodeHeight"]]);
         }
     }
     
@@ -301,7 +302,7 @@ UNI_EXPORT_METHOD(@selector(callMethod:callback:))
 }
 
 - (void)getVideoConfig:(NSDictionary *)params callback:(UniModuleKeepAliveCallback)callback {
-    ZegoPublishChannel channel = [params[@"channel"] unsignedIntegerValue];
+    ZegoPublishChannel channel = [DCUniConvert NSUInteger:params[@"channel"]];
     ZegoVideoConfig *config = [[ZegoExpressEngine sharedEngine] getVideoConfig:channel];
 
     NSDictionary *result = @{
@@ -317,15 +318,15 @@ UNI_EXPORT_METHOD(@selector(callMethod:callback:))
 }
 
 - (void)setVideoMirrorMode:(NSDictionary *)params callback:(UniModuleKeepAliveCallback)callback {
-    ZegoVideoMirrorMode mirrorMode = [params[@"mode"] unsignedIntValue];
-    ZegoPublishChannel channel = [params[@"channel"] unsignedIntValue];
+    ZegoVideoMirrorMode mirrorMode = [DCUniConvert NSUInteger:params[@"mode"]];
+    ZegoPublishChannel channel = [DCUniConvert NSUInteger:params[@"channel"]];
     [[ZegoExpressEngine sharedEngine] setVideoMirrorMode:mirrorMode channel:channel];
     [self callbackNotNull:callback];
 }
 
 - (void)setAppOrientation:(NSDictionary *)params callback:(UniModuleKeepAliveCallback)callback {
-    NSInteger orientation = [params[@"orientation"] integerValue];
-    ZegoPublishChannel channel = [params[@"channel"] integerValue];
+    NSInteger orientation = [DCUniConvert NSInteger:params[@"orientation"]];
+    ZegoPublishChannel channel = [DCUniConvert NSUInteger:params[@"channel"]];
     UIInterfaceOrientation  uiOrientation = UIInterfaceOrientationUnknown;
     switch (orientation) {
         case 0:
@@ -350,14 +351,14 @@ UNI_EXPORT_METHOD(@selector(callMethod:callback:))
     NSDictionary *config = params[@"config"];
     ZegoAudioConfig *vConfig = [ZegoAudioConfig defaultConfig];
     if (config[@"bitrate"]) {
-        vConfig.bitrate = [config[@"bitrate"] intValue];
+        vConfig.bitrate = (int)[DCUniConvert NSInteger:config[@"bitrate"]];
     }
     if (config[@"channel"]) {
-        NSInteger channels = [config[@"channel"] intValue];
+        NSInteger channels = [DCUniConvert NSUInteger:config[@"channel"]];
         vConfig.channel = (ZegoAudioChannel)channels;
     }
     if (config[@"codecID"]) {
-        ZegoAudioCodecID codec = (ZegoAudioCodecID)[config[@"codecID"] intValue];
+        ZegoAudioCodecID codec = (ZegoAudioCodecID)[DCUniConvert NSUInteger:config[@"codecID"]];
         vConfig.codecID = codec;
     }
     [[ZegoExpressEngine sharedEngine] setAudioConfig:vConfig];
@@ -375,7 +376,7 @@ UNI_EXPORT_METHOD(@selector(callMethod:callback:))
 }
 
 - (void)setPublishStreamEncryptionKey:(NSDictionary *)params callback:(UniModuleKeepAliveCallback)callback {
-    NSString *key = params[@"key"];
+    NSString *key = [DCUniConvert NSString:params[@"key"]];
     ZegoPublishChannel channel = [params[@"channel"] integerValue];
     
     [[ZegoExpressEngine sharedEngine] setPublishStreamEncryptionKey:key channel:channel];
@@ -383,7 +384,7 @@ UNI_EXPORT_METHOD(@selector(callMethod:callback:))
 }
 
 - (void)takePublishStreamSnapshot:(NSDictionary *)params callback:(UniModuleKeepAliveCallback)callback {
-    ZegoPublishChannel channel = [params[@"channel"] unsignedIntegerValue];
+    ZegoPublishChannel channel = [DCUniConvert NSUInteger:params[@"channel"]];
     [[ZegoExpressEngine sharedEngine] takePublishStreamSnapshot:^(int errorCode, ZGImage * _Nullable image) {
         NSString *imgBase64Str = nil;
         if (image) {
@@ -396,47 +397,47 @@ UNI_EXPORT_METHOD(@selector(callMethod:callback:))
 }
 
 - (void)mutePublishStreamAudio:(NSDictionary *)params callback:(UniModuleKeepAliveCallback)callback {
-    BOOL mute = [params[@"mute"] boolValue];
-    ZegoPublishChannel channel = [params[@"channel"] integerValue];
+    BOOL mute = [DCUniConvert BOOL:params[@"mute"]];
+    ZegoPublishChannel channel = [DCUniConvert NSUInteger:params[@"channel"]];
     [[ZegoExpressEngine sharedEngine] mutePublishStreamAudio:mute channel:channel];
     [self callbackNotNull:callback];
 }
 
 - (void)mutePublishStreamVideo:(NSDictionary *)params callback:(UniModuleKeepAliveCallback)callback {
-    BOOL mute = [params[@"mute"] boolValue];
-    ZegoPublishChannel channel = [params[@"channel"] integerValue];
+    BOOL mute = [DCUniConvert BOOL:params[@"mute"]];
+    ZegoPublishChannel channel = [DCUniConvert NSUInteger:params[@"channel"]];
     [[ZegoExpressEngine sharedEngine] mutePublishStreamVideo:mute channel:channel];
     [self callbackNotNull:callback];
 }
 
 - (void)enableTrafficControl:(NSDictionary *)params callback:(UniModuleKeepAliveCallback)callback {
-    BOOL enable = [params[@"enable"] boolValue];
-    ZegoTrafficControlProperty property = [params[@"property"] integerValue];
-    ZegoPublishChannel channel = [params[@"channel"] integerValue];
+    BOOL enable = [DCUniConvert BOOL:params[@"enable"]];
+    ZegoTrafficControlProperty property = [DCUniConvert NSUInteger:params[@"property"]];
+    ZegoPublishChannel channel = [DCUniConvert NSUInteger:params[@"channel"]];
 
     [[ZegoExpressEngine sharedEngine] enableTrafficControl:enable property:property channel:channel];
     [self callbackNotNull:callback];
 }
 
 - (void)setMinVideoBitrateForTrafficControl:(NSDictionary *)params callback:(UniModuleKeepAliveCallback)callback {
-    int bitrate = [params[@"bitrate"] intValue];
-    ZegoTrafficControlMinVideoBitrateMode mode = [params[@"mode"] integerValue];
-    ZegoPublishChannel channel = [params[@"channel"] integerValue];
+    int bitrate = (int)[DCUniConvert NSInteger:params[@"bitrate"]];
+    ZegoTrafficControlMinVideoBitrateMode mode = [DCUniConvert NSUInteger:params[@"mode"]];
+    ZegoPublishChannel channel = [DCUniConvert NSUInteger:params[@"channel"]];
     
     [[ZegoExpressEngine sharedEngine] setMinVideoBitrateForTrafficControl:bitrate mode:mode channel:channel];
     [self callbackNotNull:callback];
 }
 
 - (void)setTrafficControlFocusOn:(NSDictionary *)params callback:(UniModuleKeepAliveCallback)callback {
-    ZegoTrafficControlFocusOnMode mode = [params[@"mode"] integerValue];
-    ZegoPublishChannel channel = [params[@"channel"] integerValue];
+    ZegoTrafficControlFocusOnMode mode = [DCUniConvert NSUInteger:params[@"mode"]];
+    ZegoPublishChannel channel = [DCUniConvert NSUInteger:params[@"channel"]];
     
     [[ZegoExpressEngine sharedEngine] setTrafficControlFocusOn:mode channel:channel];
     [self callbackNotNull:callback];
 }
 
 - (void)setCaptureVolume:(NSDictionary *)params callback:(UniModuleKeepAliveCallback)callback {
-    int volume = [params[@"volume"] intValue];
+    int volume = (int)[DCUniConvert NSUInteger:params[@"volume"]];
     [[ZegoExpressEngine sharedEngine] setCaptureVolume:volume];
     [self callbackNotNull:callback];
 }
@@ -448,8 +449,8 @@ UNI_EXPORT_METHOD(@selector(callMethod:callback:))
 }
 
 - (void)addPublishCdnUrl:(NSDictionary *)params callback:(UniModuleKeepAliveCallback)callback {
-    NSString *targetURL = params[@"targetURL"];
-    NSString *streamID = params[@"streamID"];
+    NSString *targetURL = [DCUniConvert NSString:params[@"targetURL"]];
+    NSString *streamID = [DCUniConvert NSString:params[@"streamID"]];
     
     [[ZegoExpressEngine sharedEngine] addPublishCdnUrl:targetURL streamID:streamID callback:^(int errorCode) {
         [self callbackNotNull:callback data:@(errorCode)];
@@ -457,8 +458,8 @@ UNI_EXPORT_METHOD(@selector(callMethod:callback:))
 }
 
 - (void)removePublishCdnUrl:(NSDictionary *)params callback:(UniModuleKeepAliveCallback)callback {
-    NSString *targetURL = params[@"targetURL"];
-    NSString *streamID = params[@"streamID"];
+    NSString *targetURL = [DCUniConvert NSString:params[@"targetURL"]];
+    NSString *streamID = [DCUniConvert NSString:params[@"streamID"]];
     
     [[ZegoExpressEngine sharedEngine] removePublishCdnUrl:targetURL streamID:streamID callback:^(int errorCode) {
         [self callbackNotNull:callback data:@(errorCode)];
@@ -471,10 +472,10 @@ UNI_EXPORT_METHOD(@selector(callMethod:callback:))
     NSDictionary *config = params[@"config"];
     ZegoCDNConfig *cdnConfig = [[ZegoCDNConfig alloc] init];
     if (config[@"url"]) {
-        cdnConfig.url = config[@"url"];
+        cdnConfig.url = [DCUniConvert NSString:config[@"url"]];
     }
     if (config[@"authParam"]) {
-        cdnConfig.authParam = config[@"authParam"];
+        cdnConfig.authParam = [DCUniConvert NSString:config[@"authParam"]];
     }
     
     [[ZegoExpressEngine sharedEngine] enablePublishDirectToCDN:enable config:cdnConfig channel:channel];
@@ -485,7 +486,7 @@ UNI_EXPORT_METHOD(@selector(callMethod:callback:))
     BOOL isPreviewVisible = [params[@"isPreviewVisible"] boolValue];
     ZegoPublishChannel channel = [params[@"channel"] integerValue];
     NSDictionary *mark = params[@"watermark"];
-    NSString *imageURL = mark[@"imageURL"];
+    NSString *imageURL = [DCUniConvert NSString:mark[@"imageURL"]];
     CGRect layout = CGRectMake([mark[@"layout"][@"x"] floatValue],
                                [mark[@"layout"][@"y"] floatValue],
                                [mark[@"layout"][@"width"] floatValue],
@@ -532,7 +533,7 @@ UNI_EXPORT_METHOD(@selector(callMethod:callback:))
 
 #pragma mark - 拉流相关
 - (void)startPlayingStream:(NSDictionary *)params callback:(UniModuleKeepAliveCallback)callback {
-    NSString *streamID = params[@"streamID"];
+    NSString *streamID = [DCUniConvert NSString:params[@"streamID"]];
     NSDictionary *config = params[@"config"];
     ZegoCanvas *canvas = [[ZegoExpressUniAppViewStore sharedInstance].playViewDict objectForKey:streamID];
     
@@ -540,8 +541,8 @@ UNI_EXPORT_METHOD(@selector(callMethod:callback:))
         ZegoPlayerConfig *configP = [[ZegoPlayerConfig alloc] init];
         ZegoCDNConfig *cdnConfig = [[ZegoCDNConfig alloc] init];
         if (config[@"cdnConfig"]) {
-            cdnConfig.authParam = config[@"cdnConfig"][@"authParam"];
-            cdnConfig.url = config[@"cdnConfig"][@"url"];
+            cdnConfig.authParam = [DCUniConvert NSString:config[@"cdnConfig"][@"authParam"]];
+            cdnConfig.url = [DCUniConvert NSString:config[@"cdnConfig"][@"url"]];
             configP.cdnConfig = cdnConfig;
         }
         if (config[@"resourceMode"]) {
@@ -555,15 +556,15 @@ UNI_EXPORT_METHOD(@selector(callMethod:callback:))
 }
 
 - (void)stopPlayingStream:(NSDictionary *)params callback:(UniModuleKeepAliveCallback)callback {
-    NSString *streamID = params[@"streamID"];
+    NSString *streamID = [DCUniConvert NSString:params[@"streamID"]];
     
     [ZegoExpressEngine.sharedEngine stopPlayingStream:streamID];
     [self callbackNotNull:callback];
 }
 
 - (void)setPlayStreamDecryptionKey:(NSDictionary *)params callback:(UniModuleKeepAliveCallback)callback {
-    NSString *key = params[@"key"];
-    NSString *streamID = params[@"streamID"];
+    NSString *key = [DCUniConvert NSString:params[@"key"]];
+    NSString *streamID = [DCUniConvert NSString:params[@"streamID"]];
 
     [ZegoExpressEngine.sharedEngine setPlayStreamDecryptionKey:key streamID:streamID];
     [self callbackNotNull:callback];
@@ -584,7 +585,7 @@ UNI_EXPORT_METHOD(@selector(callMethod:callback:))
 }
 
 - (void)setPlayVolume:(NSDictionary *)params callback:(UniModuleKeepAliveCallback)callback {
-    NSString *streamID = params[@"streamID"];
+    NSString *streamID = [DCUniConvert NSString:params[@"streamID"]];
     NSInteger volume = [params[@"volume"] integerValue];
     [[ZegoExpressEngine sharedEngine] setPlayVolume:(int)volume streamID:streamID];
     [self callbackNotNull:callback];
@@ -599,7 +600,7 @@ UNI_EXPORT_METHOD(@selector(callMethod:callback:))
 
 - (void)setPlayStreamVideoType:(NSDictionary *)params callback:(UniModuleKeepAliveCallback)callback {
     ZegoVideoStreamType streamType = [params[@"streamType"] intValue];
-    NSString *streamID = params[@"streamID"];
+    NSString *streamID = [DCUniConvert NSString:params[@"streamID"]];
 
     [ZegoExpressEngine.sharedEngine setPlayStreamVideoType:streamType streamID:streamID];
     [self callbackNotNull:callback];
@@ -610,7 +611,7 @@ UNI_EXPORT_METHOD(@selector(callMethod:callback:))
 }
 
 - (void)setPlayStreamFocusOn:(NSDictionary *)params callback:(UniModuleKeepAliveCallback)callback {
-    NSString *streamID = params[@"streamID"];
+    NSString *streamID = [DCUniConvert NSString:params[@"streamID"]];
 
     [ZegoExpressEngine.sharedEngine setPlayStreamFocusOn:streamID];
     [self callbackNotNull:callback];
@@ -618,14 +619,14 @@ UNI_EXPORT_METHOD(@selector(callMethod:callback:))
 
 - (void)mutePlayStreamAudio:(NSDictionary *)params callback:(UniModuleKeepAliveCallback)callback {
     BOOL mute = [params[@"mute"] boolValue];
-    NSString *streamID = params[@"streamID"];
+    NSString *streamID = [DCUniConvert NSString:params[@"streamID"]];
     [[ZegoExpressEngine sharedEngine] mutePlayStreamAudio:mute streamID:streamID];
     [self callbackNotNull:callback];
 }
 
 - (void)mutePlayStreamVideo:(NSDictionary *)params callback:(UniModuleKeepAliveCallback)callback {
     BOOL mute = [params[@"mute"] boolValue];
-    NSString *streamID = params[@"streamID"];
+    NSString *streamID = [DCUniConvert NSString:params[@"streamID"]];
     [[ZegoExpressEngine sharedEngine] mutePlayStreamVideo:mute streamID:streamID];
     [self callbackNotNull:callback];
 }
@@ -769,8 +770,8 @@ UNI_EXPORT_METHOD(@selector(callMethod:callback:))
 #pragma mark - IM
 
 - (void)sendBroadcastMessage:(NSDictionary *)params callback:(nullable UniModuleKeepAliveCallback)callback {
-    NSString *roomID = params[@"roomID"];
-    NSString *message = params[@"message"];
+    NSString *roomID = [DCUniConvert NSString:params[@"roomID"]];
+    NSString *message = [DCUniConvert NSString:params[@"message"]];
     
     
     [[ZegoExpressEngine sharedEngine] sendBroadcastMessage:message roomID:roomID callback:^(int errorCode, unsigned long long messageID) {
@@ -779,8 +780,8 @@ UNI_EXPORT_METHOD(@selector(callMethod:callback:))
 }
 
 - (void)sendBarrageMessage:(NSDictionary *)params callback:(nullable UniModuleKeepAliveCallback)callback {
-    NSString *roomID = params[@"roomID"];
-    NSString *message = params[@"message"];
+    NSString *roomID = [DCUniConvert NSString:params[@"roomID"]];
+    NSString *message = [DCUniConvert NSString:params[@"message"]];
     
     [[ZegoExpressEngine sharedEngine] sendBarrageMessage:message roomID:roomID callback:^(int errorCode, NSString * _Nonnull messageID) {
         [self callbackNotNull:callback data:@{@"errorCode": @(errorCode), @"messageID": messageID}];
@@ -788,8 +789,8 @@ UNI_EXPORT_METHOD(@selector(callMethod:callback:))
 }
 
 - (void)sendCustomCommand:(NSDictionary *)params callback:(nullable UniModuleKeepAliveCallback)callback {
-    NSString *roomID = params[@"roomID"];
-    NSString *command = params[@"command"];
+    NSString *roomID = [DCUniConvert NSString:params[@"roomID"]];
+    NSString *command = [DCUniConvert NSString:params[@"command"]];
     NSArray<NSDictionary *> *toUserList = params[@"toUserList"];
     
     NSMutableArray<ZegoUser *> *toUserListFinal = [NSMutableArray array];
@@ -799,7 +800,7 @@ UNI_EXPORT_METHOD(@selector(callMethod:callback:))
         }
         NSString *userName = @"";
         if (userDict[@"userName"]) {
-            userName = userDict[@"userName"];
+            userName = [DCUniConvert NSString:userDict[@"userName"]];
         }
         ZegoUser *user = [ZegoUser userWithUserID:userDict[@"userID"] userName:userName];
         [toUserListFinal addObject:user];
@@ -1068,7 +1069,7 @@ UNI_EXPORT_METHOD(@selector(callMethod:callback:))
 
 - (void)mediaPlayerLoadResource:(NSDictionary *)params callback:(UniModuleKeepAliveCallback)callback {
     NSInteger playerID = [params[@"playerID"] integerValue];
-    NSString *path = params[@"path"];
+    NSString *path = [DCUniConvert NSString:params[@"path"]];
     
     ZegoMediaPlayer *player = self.mediaPlayerDict[@(playerID).stringValue];
     if (player) {
@@ -1383,7 +1384,7 @@ UNI_EXPORT_METHOD(@selector(callMethod:callback:))
 - (void)audioEffectPlayerStart:(NSDictionary *)params callback:(UniModuleKeepAliveCallback)callback {
     NSInteger playerID = [params[@"playerID"] integerValue];
     unsigned int audioEffectID = [params[@"audioEffectID"] unsignedIntValue];
-    NSString *path = params[@"path"];
+    NSString *path = [DCUniConvert NSString:params[@"path"]];
     NSDictionary *config = params[@"config"];
     
     ZegoAudioEffectPlayer *player = self.audioEffectPlayerDict[@(playerID).stringValue];
