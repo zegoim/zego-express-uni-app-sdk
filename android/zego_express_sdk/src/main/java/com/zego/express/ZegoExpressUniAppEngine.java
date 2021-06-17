@@ -110,7 +110,7 @@ import im.zego.zegoexpress.entity.ZegoWatermark;
 import io.dcloud.feature.uniapp.common.UniModule;
 
 public class ZegoExpressUniAppEngine extends UniModule {
-    static HashMap<String, ZegoCanvas> playViewMap = new HashMap<String, ZegoCanvas>();
+    static HashMap<String, ZegoPlayStreamStore> playViewMap = new HashMap<String, ZegoPlayStreamStore>();
     static HashMap<String, ZegoCanvas> previewViewMap = new HashMap<String, ZegoCanvas>();
     static HashMap<String, ZegoCanvas> mediaPlayerViewMap = new HashMap<String, ZegoCanvas>();
 
@@ -917,9 +917,14 @@ public class ZegoExpressUniAppEngine extends UniModule {
     public void startPlayingStream(JSONObject map, JSCallback callback) {
         String streamID = map.getString("streamID");
         JSONObject config = map.getJSONObject("config");
-        ZegoCanvas canvas = playViewMap.get(streamID);
+        ZegoPlayStreamStore store = playViewMap.get(streamID);
+        if (store == null) {
+            store = new ZegoPlayStreamStore();
+        }
+        store.isPlaying = true;
+
         if (config == null) {
-            ZegoExpressEngine.getEngine().startPlayingStream(streamID, canvas);
+            ZegoExpressEngine.getEngine().startPlayingStream(streamID, store.canvas);
         } else {
             ZegoPlayerConfig configP = new ZegoPlayerConfig();
             ZegoCDNConfig cdnConfig = new ZegoCDNConfig();
@@ -932,8 +937,11 @@ public class ZegoExpressUniAppEngine extends UniModule {
                 int resourceMode = config.getIntValue("resourceMode");
                 configP.resourceMode = ZegoStreamResourceMode.getZegoStreamResourceMode(resourceMode);
             }
-            ZegoExpressEngine.getEngine().startPlayingStream(streamID, canvas, configP);
+            ZegoExpressEngine.getEngine().startPlayingStream(streamID, store.canvas, configP);
+            store.config = configP;
         }
+        playViewMap.put(streamID, store);
+
         callbackNotNull(callback);
     }
 
@@ -1974,5 +1982,15 @@ public class ZegoExpressUniAppEngine extends UniModule {
             }
         }
         return result;
+    }
+}
+
+class ZegoPlayStreamStore {
+    ZegoPlayerConfig config;
+    ZegoCanvas canvas;
+    boolean isPlaying;
+
+    ZegoPlayStreamStore() {
+
     }
 }

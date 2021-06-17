@@ -67,7 +67,12 @@ public class ZegoView extends UniComponent<TextureView> {
                 WXLogUtils.e("error: please offer legal stream ID");
                 return;
             }
-            ZegoExpressUniAppEngine.playViewMap.put(streamID, canvas);
+            ZegoPlayStreamStore store = ZegoExpressUniAppEngine.playViewMap.get(streamID);
+            if (store == null) {
+                store = new ZegoPlayStreamStore();
+            }
+            store.canvas = canvas;
+            ZegoExpressUniAppEngine.playViewMap.put(streamID, store);
             engine.startPlayingStream(streamID, canvas);
         }
     }

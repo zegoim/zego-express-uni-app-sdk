@@ -62,7 +62,17 @@ public class ZegoPlayView extends UniComponent<View> {
         }
         ZegoCanvas canvas = new ZegoCanvas(canvasView);
         canvas.viewMode = ZegoViewMode.getZegoViewMode(viewMode);
-        ZegoExpressUniAppEngine.playViewMap.put(streamID, canvas);
+
+        ZegoPlayStreamStore store = ZegoExpressUniAppEngine.playViewMap.get(streamID);
+        if (store == null) {
+            store = new ZegoPlayStreamStore();
+        }
+        store.canvas = canvas;
+
+        if (store.isPlaying) {
+            ZegoExpressEngine.getEngine().startPlayingStream(streamID, store.canvas, store.config);
+        }
+        ZegoExpressUniAppEngine.playViewMap.put(streamID, store);
     }
 
     @Override
@@ -76,17 +86,21 @@ public class ZegoPlayView extends UniComponent<View> {
 
     @UniComponentProp(name = "viewMode")
     public void setViewMode(Integer viewMode) {
-        ZegoCanvas canvas = ZegoExpressUniAppEngine.playViewMap.get(streamID);
-        canvas.viewMode = ZegoViewMode.getZegoViewMode(viewMode);
-        ZegoExpressUniAppEngine.playViewMap.put(streamID, canvas);
+        ZegoPlayStreamStore store = ZegoExpressUniAppEngine.playViewMap.get(streamID);
+        store.canvas.viewMode = ZegoViewMode.getZegoViewMode(viewMode);
+        ZegoExpressUniAppEngine.playViewMap.put(streamID, store);
         this.viewMode = viewMode;
     }
 
     @UniComponentProp(name = "streamID")
     public void setStreamID(String streamID) {
-        ZegoCanvas canvas = ZegoExpressUniAppEngine.playViewMap.get(this.streamID);
+        ZegoPlayStreamStore store = ZegoExpressUniAppEngine.playViewMap.get(this.streamID);
         ZegoExpressUniAppEngine.playViewMap.remove(this.streamID);
-        ZegoExpressUniAppEngine.playViewMap.put(streamID, canvas);
+        ZegoExpressUniAppEngine.playViewMap.put(streamID, store);
+
+        if (store.isPlaying) {
+            ZegoExpressEngine.getEngine().startPlayingStream(streamID, store.canvas, store.config);
+        }
         this.streamID = streamID;
     }
 
