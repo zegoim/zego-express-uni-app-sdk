@@ -14,8 +14,11 @@ import {
     ZegoIMSendCustomCommandResult,
     ZegoTrafficControlProperty,
     ZegoTrafficControlMinVideoBitrateMode,
-    ZegoDestroyCompletionCallback,
-    ZegoVideoStreamType
+    ZegoVideoStreamType,
+    ZegoPublisherUpdateCdnUrlResult,
+    ZegoCDNConfig,
+    ZegoAECMode,
+    ZegoANSMode
 } from "./ZegoExpressDefines"
 import { ZegoEventListener} from './ZegoExpressEventHandler';
 import {ZegoExpressEngineImpl} from './impl/ZegoExpressEngineImpl';
@@ -343,6 +346,54 @@ export default class ZegoExpressEngine {
     }
 
     /**
+     * Adds a target CDN URL to which the stream will be relayed from ZEGO RTC server.
+     * 
+     * Developers can call this function to publish the audio and video streams that have been published to the ZEGO RTC server to a custom CDN content distribution network that has high latency but supports high concurrent playing stream.
+     * Because this called function is essentially a dynamic relay of the audio and video streams published to the ZEGO RTC server to different CDNs, this function needs to be called after the audio and video stream is published to ZEGO RTC server successfully.
+     * Since ZEGO RTC server itself can be configured to support CDN(content distribution networks), this function is mainly used by developers who have CDN content distribution services themselves.
+     * You can use ZEGO's CDN audio and video streaming content distribution service at the same time by calling this function and then use the developer who owns the CDN content distribution service.
+     * This function supports dynamic relay to the CDN content distribution network, so developers can use this function as a disaster recovery solution for CDN content distribution services.
+     * When the {enablePublishDirectToCDN] function is set to true to publish the stream straight to the CDN, then calling this function will have no effect.
+     * 
+     * @param targetURL CDN relay address, supported address format is rtmp.
+     * @param streamID Stream ID
+     * @returns The execution result of update the relay CDN operation
+     */
+    addPublishCdnUrl(targetURL: string, streamID: string): Promise<ZegoPublisherUpdateCdnUrlResult> {
+        return ZegoExpressEngineImpl.getInstance().addPublishCdnUrl(targetURL, streamID);
+    }
+
+    /**
+     * Deletes the specified CDN URL, which is used for relaying streams from ZEGO RTC server to CDN.
+     * 
+     * This function is called when a CDN relayed address has been added and needs to stop propagating the stream to the CDN.
+     * This function does not stop publishing audio and video stream to the ZEGO ZEGO RTC server.
+     * 
+     * @param targetURL Stream ID
+     * @param streamID CDN relay address, supported address format rtmp.
+     * @returns The execution result of update the relay CDN operation
+     */
+    removePublishCdnUrl(targetURL: string, streamID: string): Promise<ZegoPublisherUpdateCdnUrlResult> {
+        return ZegoExpressEngineImpl.getInstance().removePublishCdnUrl(targetURL, streamID);
+    }
+
+    /**
+     * Whether to publish streams directly from the client to CDN without passing through Zego RTC server.
+     * 
+     * This function needs to be set before [startPublishingStream].
+     * After calling this function to publish the audio and video stream directly to the CDN, calling [addPublishCdnUrl] and [removePublishCdnUrl] to dynamically relay to the CDN no longer takes effect,
+     * because these two functions are to relay or stop relaying the audio and video stream from ZEGO RTC server to CDN,
+     * if you enable the direct publish of audio and video streams to CDN, you will not be able to dynamically relay the audio and video streams to the CDN through the ZEGO RTC server.
+     * 
+     * @param enable Whether to enable direct publish CDN, true: enable direct publish CDN, false: disable direct publish CDN
+     * @param config CDN configuration, if null, use Zego's background default configuration
+     * @param channel Publish stream channel
+     */
+    enablePublishDirectToCDN(enable: boolean, config: ZegoCDNConfig, channel = ZegoPublishChannel.Main): Promise<void> {
+        return ZegoExpressEngineImpl.getInstance().enablePublishDirectToCDN(enable, config, channel);
+    }
+
+    /**
      * Starts playing a stream from ZEGO's streaming cloud or from third-party CDN.
      *
      * This interface allows users to play audio and video streams both from the ZEGO real-time audio and video cloud and from third-party cdn.
@@ -504,9 +555,81 @@ export default class ZegoExpressEngine {
      * @param enable Whether to use the front camera, true: use the front camera, false: use the the rear camera. The default value is true
      * @param channel Publishing stream channel
      */
-     useFrontCamera(enable: boolean, channel?:ZegoPublishChannel): Promise<void> {
+    useFrontCamera(enable: boolean, channel?:ZegoPublishChannel): Promise<void> {
         return ZegoExpressEngineImpl.getInstance().useFrontCamera(enable, channel);
     }    
+
+    /**
+     * Enables or disables acoustic echo cancellation (AEC).
+     * 
+     * Turning on echo cancellation, the SDK filters the collected audio data to reduce the echo component in the audio.
+     * It needs to be invoked before [startPublishingStream], [startPlayingStream], [startPreview], [createMediaPlayer] and [createAudioEffectPlayer] to take effect.
+     * 
+     * @param enable Whether to enable echo cancellation, true: enable, false: disable
+     */
+    enableAEC(enable: boolean): Promise<void> {
+        return ZegoExpressEngineImpl.getInstance().enableAEC(enable);
+    }
+
+    /**
+     * Sets the acoustic echo cancellation (AEC) mode.
+     * 
+     * Switch different echo cancellation modes to control the extent to which echo data is eliminated.
+     * It needs to be invoked before [startPublishingStream], [startPlayingStream], [startPreview], [createMediaPlayer] and [createAudioEffectPlayer] to take effect.
+     * 
+     * @param mode Echo cancellation mode
+     */
+    setAECMode(mode: ZegoAECMode): Promise<void> {
+        return ZegoExpressEngineImpl.getInstance().setAECMode(mode);
+    }
+
+    /**
+     * Enables or disables automatic gain control (AGC).
+     * 
+     * When the auto gain is turned on, the sound will be amplified, but it will affect the sound quality to some extent.
+     * It needs to be invoked before [startPublishingStream], [startPlayingStream], [startPreview], [createMediaPlayer] and [createAudioEffectPlayer] to take effect.
+     * 
+     * @param enable Whether to enable automatic gain control, true: enable, false: disable
+     */
+    enableAGC(enable: boolean): Promise<void> {
+        return ZegoExpressEngineImpl.getInstance().enableAGC(enable);
+    }
+
+    /**
+     * Enables or disables active noise suppression (ANS, aka ANC).
+     * 
+     * Turning on the noise suppression switch can reduce the noise in the audio data and make the human voice clearer.
+     * It needs to be invoked before [startPublishingStream], [startPlayingStream], [startPreview], [createMediaPlayer] and [createAudioEffectPlayer] to take effect.
+     * 
+     * @param enable Whether to enable noise suppression, true: enable, false: disable
+     */
+    enableANS(enable: boolean): Promise<void> {
+        return ZegoExpressEngineImpl.getInstance().enableANS(enable);
+    }
+
+    /**
+     * Enables or disables transient noise suppression.
+     * 
+     * Suppress transient noises such as keyboard and desk knocks
+     * It needs to be invoked before [startPublishingStream], [startPlayingStream], [startPreview], [createMediaPlayer] and [createAudioEffectPlayer] to take effect.
+     * 
+     * @param enable Whether to enable transient noise suppression, true: enable, false: disable
+     */
+    enableTransientANS(enable: boolean): Promise<void> {
+        return ZegoExpressEngineImpl.getInstance().enableTransientANS(enable);
+    }
+
+    /**
+     * Sets the automatic noise suppression (ANS) mode.
+     * 
+     * Default is medium mode
+     * It needs to be invoked before [startPublishingStream], [startPlayingStream], [startPreview], [createMediaPlayer] and [createAudioEffectPlayer] to take effect.
+     * 
+     * @param mode Audio Noise Suppression mode
+     */
+    setANSMode(mode: ZegoANSMode): Promise<void> {
+        return ZegoExpressEngineImpl.getInstance().setANSMode(mode);
+    }
 
     /**
      * Creates a media player instance.
