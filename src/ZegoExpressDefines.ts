@@ -1050,18 +1050,26 @@ export interface ZegoEngineConfig {
 }
 
 
-/// Advanced room configuration.
-///
-/// Configure maximum number of users in the room and authentication token, etc.
+/**
+ * Advanced room configuration.
+ * 
+ * Configure maximum number of users in the room and authentication token, etc.
+ */
 export interface ZegoRoomConfig {
 
-    /// The maximum number of users in the room, Passing 0 means unlimited, the default is unlimited.
+    /** 
+     * The maximum number of users in the room, Passing 0 means unlimited, the default is unlimited.
+     */
     maxMemberCount: number
 
-    /// Whether to enable the user in and out of the room callback notification [onRoomUserUpdate], the default is off. If developers need to use ZEGO Room user notifications, make sure that each user who login sets this flag to true
+    /** 
+     * Whether to enable the user in and out of the room callback notification [onRoomUserUpdate], the default is off. If developers need to use ZEGO Room user notifications, make sure that each user who login sets this flag to true
+     */
     userUpdate: boolean
 
-    /// The token issued by the developer's business server is used to ensure security. The generation rules are detailed in Room Login Authentication Description https://doc-en.zego.im/en/3881.html Default is empty string, that is, no authentication
+    /**
+     * The token issued by the developer's business server is used to ensure security. The generation rules are detailed in Room Login Authentication Description https://doc-en.zego.im/en/3881.html Default is empty string, that is, no authentication
+     */
     token: string
 }
 
