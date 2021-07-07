@@ -1059,7 +1059,7 @@ export interface ZegoRoomConfig {
     maxMemberCount: number
 
     /// Whether to enable the user in and out of the room callback notification [onRoomUserUpdate], the default is off. If developers need to use ZEGO Room user notifications, make sure that each user who login sets this flag to true
-    isUserStatusNotify: boolean
+    userUpdate: boolean
 
     /// The token issued by the developer's business server is used to ensure security. The generation rules are detailed in Room Login Authentication Description https://doc-en.zego.im/en/3881.html Default is empty string, that is, no authentication
     token: string

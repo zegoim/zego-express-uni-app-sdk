@@ -45,8 +45,8 @@ export interface ZegoEventListener {
      * @event ZegoExpressEngine#onRoomUserUpdate
      * @desc The callback triggered when the number of other users in the room increases or decreases.
      *
-     * Note that the callback is only triggered when the isUserStatusNotify parameter in the ZegoRoomConfig passed loginRoom function is true. Developers can use this callback to determine the situation of users in the room.
-     * If developers need to use ZEGO room users notifications, please make sure that each login user sets isUserStatusNotify to true
+     * Note that the callback is only triggered when the userUpdate parameter in the ZegoRoomConfig passed loginRoom function is true. Developers can use this callback to determine the situation of users in the room.
+     * If developers need to use ZEGO room users notifications, please make sure that each login user sets userUpdate to true
      * When a user logs in to a room for the first time, other users already exist in this room, and a user list of the type of addition is received.
      * When the user is already in the room, other users in this room will trigger this callback to notify the changed users when they enter or exit the room.
      * @property {string} roomID - Room ID where the user is logged in, a string of up to 128 bytes in length.
