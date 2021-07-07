@@ -830,7 +830,7 @@ public class ZegoExpressUniAppEngine extends UniModule {
         String targetURL = map.getString("targetURL");
         String streamID = map.getString("streamID");
 
-        ZegoExpressEngine.getEngine().addPublishCdnUrl(targetURL, streamID, new IZegoPublisherUpdateCdnUrlCallback() {
+        ZegoExpressEngine.getEngine().addPublishCdnUrl(streamID, targetURL, new IZegoPublisherUpdateCdnUrlCallback() {
             @Override
             public void onPublisherUpdateCdnUrlResult(int i) {
                 callbackNotNull(callback, i);
@@ -842,7 +842,7 @@ public class ZegoExpressUniAppEngine extends UniModule {
         String targetURL = map.getString("targetURL");
         String streamID = map.getString("streamID");
 
-        ZegoExpressEngine.getEngine().removePublishCdnUrl(targetURL, streamID, new IZegoPublisherUpdateCdnUrlCallback() {
+        ZegoExpressEngine.getEngine().removePublishCdnUrl(streamID, targetURL, new IZegoPublisherUpdateCdnUrlCallback() {
             @Override
             public void onPublisherUpdateCdnUrlResult(int i) {
                 callbackNotNull(callback, i);
@@ -956,7 +956,7 @@ public class ZegoExpressUniAppEngine extends UniModule {
         String streamID = map.getString("streamID");
         String key = map.getString("key");
 
-        ZegoExpressEngine.getEngine().setPlayStreamDecryptionKey(key, streamID);
+        ZegoExpressEngine.getEngine().setPlayStreamDecryptionKey(streamID, key);
         callbackNotNull(callback);
     }
 
