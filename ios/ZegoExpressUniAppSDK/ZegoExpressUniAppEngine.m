@@ -161,6 +161,9 @@ UNI_EXPORT_METHOD(@selector(callMethod:callback:))
         if (config[@"userUpdate"]) {
             roomConfig.isUserStatusNotify = [DCUniConvert BOOL:config[@"userUpdate"]];
         }
+        if (config[@"isUserStatusNotify"]) {
+            roomConfig.isUserStatusNotify = [DCUniConvert BOOL:config[@"isUserStatusNotify"]];
+        }
         if (config[@"maxMemberCount"]) {
             roomConfig.maxMemberCount = (unsigned int)[DCUniConvert NSUInteger:config[@"maxMemberCount"]];
         }
@@ -189,6 +192,9 @@ UNI_EXPORT_METHOD(@selector(callMethod:callback:))
         if (config[@"userUpdate"]) {
             roomConfig.isUserStatusNotify = [DCUniConvert BOOL:config[@"userUpdate"]];
         }
+        if (config[@"isUserStatusNotify"]) {
+            roomConfig.isUserStatusNotify = [DCUniConvert BOOL:config[@"isUserStatusNotify"]];
+        }
         if (config[@"maxMemberCount"]) {
             roomConfig.maxMemberCount = (unsigned int)[DCUniConvert NSUInteger:config[@"maxMemberCount"]];
         }
@@ -209,6 +215,9 @@ UNI_EXPORT_METHOD(@selector(callMethod:callback:))
         ZegoRoomConfig *roomConfig = [ZegoRoomConfig defaultConfig];
         if (config[@"userUpdate"]) {
             roomConfig.isUserStatusNotify = [DCUniConvert BOOL:config[@"userUpdate"]];
+        }
+        if (config[@"isUserStatusNotify"]) {
+            roomConfig.isUserStatusNotify = [DCUniConvert BOOL:config[@"isUserStatusNotify"]];
         }
         if (config[@"maxMemberCount"]) {
             roomConfig.maxMemberCount = (unsigned int)[DCUniConvert NSUInteger:config[@"maxMemberCount"]];

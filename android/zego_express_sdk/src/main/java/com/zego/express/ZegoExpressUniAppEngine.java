@@ -560,7 +560,12 @@ public class ZegoExpressUniAppEngine extends UniModule {
 
         if(config != null) {
             ZegoRoomConfig roomConfigObj = new ZegoRoomConfig();
-            roomConfigObj.isUserStatusNotify = config.getBoolean("userUpdate");
+            if (config.containsKey("userUpdate")) {
+                roomConfigObj.isUserStatusNotify = config.getBoolean("userUpdate");
+            }
+            if (config.containsKey("isUserStatusNotify")) {
+                roomConfigObj.isUserStatusNotify = config.getBoolean("isUserStatusNotify");
+            }
             roomConfigObj.maxMemberCount = config.getIntValue("maxMemberCount");
             roomConfigObj.token = config.getString("token");
 
@@ -582,7 +587,12 @@ public class ZegoExpressUniAppEngine extends UniModule {
         JSONObject config = map.getJSONObject("config");
 
         ZegoRoomConfig roomConfigObj = new ZegoRoomConfig();
-        roomConfigObj.isUserStatusNotify = config.getBoolean("userUpdate");
+        if (config.containsKey("userUpdate")) {
+            roomConfigObj.isUserStatusNotify = config.getBoolean("userUpdate");
+        }
+        if (config.containsKey("isUserStatusNotify")) {
+            roomConfigObj.isUserStatusNotify = config.getBoolean("isUserStatusNotify");
+        }
         roomConfigObj.maxMemberCount = config.getIntValue("maxMemberCount");
         roomConfigObj.token = config.getString("token");
         ZegoExpressEngine.getEngine().loginMultiRoom(roomID, roomConfigObj);
@@ -597,7 +607,12 @@ public class ZegoExpressUniAppEngine extends UniModule {
 
         if (config != null) {
             ZegoRoomConfig roomConfigObj = new ZegoRoomConfig();
-            roomConfigObj.isUserStatusNotify = config.getBoolean("userUpdate");
+            if (config.containsKey("userUpdate")) {
+                roomConfigObj.isUserStatusNotify = config.getBoolean("userUpdate");
+            }
+            if (config.containsKey("isUserStatusNotify")) {
+                roomConfigObj.isUserStatusNotify = config.getBoolean("isUserStatusNotify");
+            }
             roomConfigObj.maxMemberCount = config.getIntValue("maxMemberCount");
             roomConfigObj.token = config.getString("token");
 
