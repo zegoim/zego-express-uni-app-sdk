@@ -18,7 +18,8 @@ import {
     ZegoPublisherUpdateCdnUrlResult,
     ZegoCDNConfig,
     ZegoAECMode,
-    ZegoANSMode
+    ZegoANSMode,
+    ZegoAudioRoute
 } from "./ZegoExpressDefines"
 import { ZegoEventListener} from './ZegoExpressEventHandler';
 import {ZegoExpressEngineImpl} from './impl/ZegoExpressEngineImpl';
@@ -629,6 +630,60 @@ export default class ZegoExpressEngine {
      */
     setANSMode(mode: ZegoANSMode): Promise<void> {
         return ZegoExpressEngineImpl.getInstance().setANSMode(mode);
+    }
+
+    /**
+     * Enables or disables headphone monitoring.
+     * 
+     * enable/disable headphone monitor, this setting takes effect when the headset is connected.
+     * 
+     * @param enable Whether to use headphone monitor, YES: enable, NO: disable
+     */
+    enableHeadphoneMonitor(enable: boolean): Promise<void> {
+        return ZegoExpressEngineImpl.getInstance().enableHeadphoneMonitor(enable);
+    }
+
+    /**
+     * Sets the headphone monitor volume.
+     * 
+     * set headphone monitor volume, this setting takes effect when the headset is connected.
+     * 
+     * @param volume headphone monitor volume, range from 0 to 200, 100 as default
+     */
+    setHeadphoneMonitorVolume(volume: number): Promise<void> {
+        return ZegoExpressEngineImpl.getInstance().setHeadphoneMonitorVolume(volume);
+    }
+
+    /**
+     * Whether to turn on acoustic echo cancellation (AEC) when using the headphone.
+     * 
+     * It needs to be invoked before [startPublishingStream], [startPlayingStream], [startPreview], [createMediaPlayer] and [createAudioEffectPlayer] to take effect.
+     * 
+     * @param enable Whether to enable, [YES]: enable, [NO]: disable
+     */
+    enableHeadphoneAEC(enable: boolean): Promise<void> {
+        return ZegoExpressEngineImpl.getInstance().enableHeadphoneAEC(enable);
+    }
+
+    /**
+     * Whether to use the built-in speaker to play audio.
+     *
+     * When you choose not to use the built-in speaker to play sound, that is, set to [false], the SDK will select the currently highest priority audio output device to play the sound according to the system schedule
+     *
+     * @param defaultToSpeaker Whether to use the built-in speaker to play sound, true: use the built-in speaker to play sound, false: use the highest priority audio output device scheduled by the current system to play sound
+     */
+    setAudioRouteToSpeaker(defaultToSpeaker: boolean): Promise<void> {
+        return ZegoExpressEngineImpl.getInstance().setAudioRouteToSpeaker(defaultToSpeaker);
+    }
+
+    /**
+     * Get current audio route type
+     * 
+     * @return {ZegoAudioRoute} Audio route
+     */
+
+    getAudioRouteType(): Promise<ZegoAudioRoute> {
+        return ZegoExpressEngineImpl.getInstance().getAudioRouteType();
     }
 
     /**

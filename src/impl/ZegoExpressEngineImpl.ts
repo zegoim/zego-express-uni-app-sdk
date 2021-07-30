@@ -45,8 +45,7 @@ import {
     ZegoVideoStreamType,
     ZegoVoiceChangerParam,
     ZegoVoiceChangerPreset,
-    ZegoWatermark,
-	ZegoDestroyCompletionCallback
+    ZegoWatermark
 } from "../ZegoExpressDefines";
 
 import { ZegoEventListener, ZegoAnyCallback, ZegoMediaPlayerListener } from "../ZegoExpressEventHandler";
