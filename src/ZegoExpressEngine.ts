@@ -19,10 +19,12 @@ import {
     ZegoCDNConfig,
     ZegoAECMode,
     ZegoANSMode,
-    ZegoAudioRoute
+    ZegoAudioRoute,
+    ZegoMixerTask
 } from "./ZegoExpressDefines"
 import { ZegoEventListener} from './ZegoExpressEventHandler';
 import {ZegoExpressEngineImpl} from './impl/ZegoExpressEngineImpl';
+import { ZegoAutoMixerTask, ZegoMixerStartResult, ZegoMixerStopResult } from "index";
 
 
 export default class ZegoExpressEngine {
@@ -67,6 +69,26 @@ export default class ZegoExpressEngine {
     }
 
     /**
+     * Register event handler
+     * 
+     * @param event event type 
+     * @param callback callback
+     */
+     on<EventType extends keyof ZegoEventListener>(event: EventType, callback: ZegoEventListener[EventType]): void {
+        return ZegoExpressEngineImpl.getInstance().on(event, callback);
+    }
+
+    /**
+     * Unregister event handler
+     * 
+     * @param event event type
+     * @param callback callback
+     */
+    off<EventType extends keyof ZegoEventListener>(event: EventType, callback?: ZegoEventListener[EventType]): void {
+        return ZegoExpressEngineImpl.getInstance().off(event, callback);
+    }
+
+    /**
      * Gets the SDK's version number.
      *
      * When the SDK is running, the developer finds that it does not match the expected situation and submits the problem and related logs to the ZEGO technical staff for locating. The ZEGO technical staff may need the information of the engine version to assist in locating the problem.
@@ -89,23 +111,34 @@ export default class ZegoExpressEngine {
     }
 
     /**
-     * Register event handler
-     * 
-     * @param event event type 
-     * @param callback callback
+     * Call the RTC experimental API.
+     *
+     * Available since: 2.7.0
+     * Description: ZEGO provides some technical previews or special customization functions in RTC business through this API. If you need to get the use of the function or the details, please consult ZEGO technical support.
+     * When to call: After [createEngine].
+     *
+     * @param {string} params You need to pass in a parameter in the form of a JSON string, please consult ZEGO technical support for details.
+     * @return {string} Returns an argument in the format of a JSON string, please consult ZEGO technical support for details.
      */
-    on<EventType extends keyof ZegoEventListener>(event: EventType, callback: ZegoEventListener[EventType]): void {
-        return ZegoExpressEngineImpl.getInstance().on(event, callback);
+    callExperimentalAPI(params: string): Promise<string> {
+        return ZegoExpressEngineImpl.getInstance().callExperimentalAPI(params);
     }
 
     /**
-     * Unregister event handler
-     * 
-     * @param event event type
-     * @param callback callback
+     * Set the path of the static picture would be published when the camera is closed.
+     *
+     * Description: Set the path of the static picture would be published when enableCamera(false) is called, it would start to publish static pictures, and when enableCamera(true) is called, it would end publishing static pictures.
+     * Use case: The developer wants to display a static picture when the camera is closed. For example, when the anchor exits the background, the camera would be actively closed. At this time, the audience side needs to display the image of the anchor temporarily leaving.
+     * When to call: After the engine is initialized, call this API to configure the parameters before closing the camera.
+     * Restrictions: 1. Supported picture types are JPEG/JPG, PNG, BMP, HEIF. 2. The function is only for SDK video capture and does not take effect for custom video capture.
+     * Caution: 1. The static picture cannot be seen in the local preview. 2. External filters, mirroring, watermarks, and snapshots are all invalid. 3. If the picture aspect ratio is inconsistent with the set code aspect ratio, it will be cropped according to the code aspect ratio.
+     * Platform differences: 1. Windows: Fill in the location of the picture directly, such as "D://dir//image.jpg". 2. iOS: If it is a full path, add the prefix "file:", such as @"file:/var/image.png"; If it is a assets picture path, add the prefix "asset:", such as @"asset:watermark". 3. Android: If it is a full path, add the prefix "file:", such as "file:/sdcard/image.png"; If it is a assets directory path, add the prefix "asset:", such as "asset:watermark.png".
+     *
+     * @param {string} filePath Picture file path
+     * @param {ZegoPublishChannel} channel Publish channel.
      */
-    off<EventType extends keyof ZegoEventListener>(event: EventType, callback?: ZegoEventListener[EventType]): void {
-        return ZegoExpressEngineImpl.getInstance().off(event, callback);
+    setDummyCaptureImagePath(filePath: string, channel?: ZegoPublishChannel): Promise<void> {
+        return ZegoExpressEngineImpl.getInstance().setDummyCaptureImagePath(filePath, channel);
     }
 
     /**
@@ -479,6 +512,41 @@ export default class ZegoExpressEngine {
      */
     enableHardwareDecoder(enable: boolean): Promise<void> {
         return ZegoExpressEngineImpl.getInstance().enableHardwareDecoder(enable);
+    }
+
+    /**
+     * Starts a stream mixing task.
+     *
+     * Description: Initiate a mixing stream request to the ZEGO RTC server, the server will look for the stream currently being pushed, and mix the layers according to the parameters of the mixing stream task requested by the SDK. When you need to update a mixing task, that is, when the input stream increases or decreases, you need to update the input stream list. At this time, you can update the field of the [ZegoMixerTask] object inputList and call this function again to pass in the same [ZegoMixerTask] object to update the mixing task.
+     * Use cases: It is often used when multiple video images are required to synthesize a video using mixed streaming, such as education, live broadcast of teacher and student images.
+     * When to call: After calling [loginRoom] to log in to the room.
+     * Restrictions: None.
+     * Caution: Due to the performance considerations of the client device, the SDK muxing is to start the mixing task on the ZEGO RTC server for mixing. If an exception occurs when the mixing task is requested to start, for example, the most common mixing input stream does not exist, the error code will be given from the callback callback. For specific error codes, please refer to the common error code document https://doc-zh.zego.im/zh/4378.html. If a certain input stream does not exist in the middle, the muxing task will automatically retry to pull this input stream for 90 seconds, and will not retry after 90 seconds. If all input streams no longer exist, the server will automatically stop the mixing task after 90 seconds.
+     * Related callbacks: [OnMixerRelayCDNStateUpdate] can be used to obtain the CDN status update notification of the mixed stream repost, and the sound update notification of each single stream in the mixed stream can be obtained through [onMixerSoundLevelUpdate].
+     * Related APIs: the mixing task can be stopped by the [stopMixerTask] function.
+     *
+     * @param {ZegoMixerTask} task Mixing task object. Required: Yes.
+     * @return {ZegoMixerStartResult} Start notification of mixing task results.Required: No. Caution: Passing [null] means not receiving callback notifications.
+     */
+    startMixerTask(task: ZegoMixerTask): Promise<ZegoMixerStartResult> {
+        return ZegoExpressEngineImpl.getInstance().startMixerTask(task);
+    }
+
+    /**
+     * Stops a stream mixing task.
+     *
+     * Description: Initiate a request to end the mixing task to the ZEGO RTC server.
+     * Use cases: It is often used when multiple video images are required to synthesize a video using mixed streaming, such as education, live broadcast of teacher and student images.
+     * When to call: After calling [startMixerTask] to start mixing.
+     * Restrictions: None.
+     * Caution: If the developer starts the next mixing task without stopping the previous mixing task, the previous mixing task will not automatically stop until the input stream of the previous mixing task does not exist for 90 seconds. Before starting the next mixing task, you should stop the previous mixing task, so that when an anchor has already started the next mixing task to mix with other anchors, the audience is still pulling the output stream of the previous mixing task.
+     * Related APIs: You can start mixing by using the [startMixerTask] function.
+     *
+     * @param {ZegoMixerTask} task Mixing task object. Required: Yes.
+     * @return {ZegoMixerStopResult} Stop stream mixing task result callback notification.Required: No. Caution: Passing [null] means not receiving callback notifications.
+     */
+    stopMixerTask(task: ZegoMixerTask): Promise<ZegoMixerStopResult> {
+        return ZegoExpressEngineImpl.getInstance().stopMixerTask(task);
     }
 
     /**

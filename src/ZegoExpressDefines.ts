@@ -50,6 +50,15 @@ export interface ZegoMediaPlayerTakeSnapshotResult {
     errorCode: number
 }
 
+export interface ZegoMixerStartResult {
+    errorCode: number
+    extendedData: Map<string, object>
+}
+
+export interface ZegoMixerStopResult {
+    errorCode: number
+}
+
 
 export interface ZegoSize {
     width: number
@@ -1483,69 +1492,110 @@ export interface ZegoBeautifyOption {
 }
 
 
-/// Mix stream audio configuration.
-///
-/// Configure video frame rate, bitrate, and resolution for mixer task
+/**
+ * Mix stream audio configuration.
+ * 
+ * Configure video frame rate, bitrate, and resolution for mixer task
+ */
 export interface ZegoMixerAudioConfig {
 
-    /// Audio bitrate in kbps, default is 48 kbps, cannot be modified after starting a mixer task
+    /**
+     * Audio bitrate in kbps, default is 48 kbps, cannot be modified after starting a mixer task
+     */
     bitrate: number
 
-    /// Audio channel, default is Mono
+    /**
+     * Audio channel, default is Mono
+     */
     channel: ZegoAudioChannel
 
-    /// codec ID, default is ZegoAudioCodecIDDefault
+    /**
+     * codec ID, default is ZegoAudioCodecIDDefault
+     */
     codecID: ZegoAudioCodecID
 
-    /// Multi-channel audio stream mixing mode. If [ZegoAudioMixMode] is selected as [Focused], the SDK will select 4 input streams with [isAudioFocus] set as the focus voice highlight. If it is not selected or less than 4 channels are selected, it will automatically fill in 4 channels
+    /**
+     * Multi-channel audio stream mixing mode. If [ZegoAudioMixMode] is selected as [Focused], the SDK will select 4 input streams with [isAudioFocus] set as the focus voice highlight. If it is not selected or less than 4 channels are selected, it will automatically fill in 4 channels
+     */
     mixMode: ZegoAudioMixMode
 }
 
-
-/// Mix stream video config object.
-///
-/// Configure video frame rate, bitrate, and resolution for mixer task
+/**
+ * Mix stream video config object.
+ * 
+ * Configure video frame rate, bitrate, and resolution for mixer task
+ */
 export interface ZegoMixerVideoConfig {
 
-    /// Video FPS, cannot be modified after starting a mixer task
+    /**
+     * Video FPS, cannot be modified after starting a mixer task
+     */
     fps: number
 
-    /// Video bitrate in kbps
+    /**
+     * Video bitrate in kbps
+     */
     bitrate: number
 
-    /// video resolution
-    resolution: number
+    /**
+     * video width
+     */
+    width: number
+
+    /**
+     * video height
+     */
+    height: number
 }
 
 
-/// Mixer input.
+/// 
 ///
-/// Configure the mix stream input stream ID, type, and the layout
+/// 
+/**
+ * Mixer input.
+ * 
+ * Configure the mix stream input stream ID, type, and the layout
+ */
 export interface ZegoMixerInput {
 
-    /// Stream ID, a string of up to 256 characters. You cannot include URL keywords, otherwise publishing stream and playing stream will fails. Only support numbers, English characters and '~', '!', '@', '$', '%', '^', '&', '*', '(', ')', '_', '+', '=', '-', '`', ';', '’', ',', '&#46;', '<', '>', '/', '\'.
+    /**
+     * Stream ID, a string of up to 256 characters. You cannot include URL keywords, otherwise publishing stream and playing stream will fails. Only support numbers, English characters and '~', '!', '@', '$', '%', '^', '&', '*', '(', ')', '_', '+', '=', '-', '`', ';', '’', ',', '&#46;', '<', '>', '/', '\'.
+     */
     streamID: string
 
-    /// Mix stream content type
+    /**
+     * Mix stream content type
+     */
     contentType: ZegoMixerInputContentType
 
-    /// Stream layout. When the mixed stream is an audio stream (that is, the ContentType parameter is set to the audio mixed stream type), the layout field is not processed inside the SDK, and there is no need to pay attention to this parameter.
+    /**
+     * Stream layout. When the mixed stream is an audio stream (that is, the ContentType parameter is set to the audio mixed stream type), the layout field is not processed inside the SDK, and there is no need to pay attention to this parameter.
+     */
     layout: ZegoRect
 
-    /// If enable soundLevel in mix stream task, an unique soundLevelID is need for every stream
+    /**
+     * If enable soundLevel in mix stream task, an unique soundLevelID is need for every stream
+     */
     soundLevelID: number
 
-    /// Whether the focus voice is enabled in the current input stream, the sound of this stream will be highlighted if enabled
+    /**
+     * Whether the focus voice is enabled in the current input stream, the sound of this stream will be highlighted if enabled
+     */
     isAudioFocus: boolean
 }
 
 
-/// Mixer output object.
-///
-/// Configure mix stream output target URL or stream ID
+/**
+ * Mixer output object.
+ * 
+ * Configure mix stream output target URL or stream ID
+ */
 export interface ZegoMixerOutput {
 
-    /// Mix stream output target, URL or stream ID, if set to be URL format, only RTMP URL surpported, for example rtmp://xxxxxxxx
+    /**
+     * Mix stream output target, URL or stream ID, if set to be URL format, only RTMP URL surpported, for example rtmp://xxxxxxxx
+     */
     target: number
 }
 
@@ -1562,41 +1612,95 @@ export interface ZegoWatermark {
     layout: ZegoRect
 }
 
-
-/// Mix stream task object.
-///
-/// This class is the configuration class of the stream mixing task. When a stream mixing task is requested to the ZEGO RTC server, the configuration of the stream mixing task is required.
-/// This class describes the detailed configuration information of this stream mixing task.
+/**
+ * Mix stream task object.
+ * 
+ * This class is the configuration class of the stream mixing task. When a stream mixing task is requested to the ZEGO RTC server, the configuration of the stream mixing task is required.
+ * This class describes the detailed configuration information of this stream mixing task.
+ */
 export interface ZegoMixerTask {
 
-    /// Mix stream task ID, a string of up to 256 characters. You cannot include URL keywords, otherwise publishing stream and playing stream will fails. Only support numbers, English characters and '~', '!', '@', '$', '%', '^', '&', '*', '(', ')', '_', '+', '=', '-', '`', ';', '’', ',', '&#46;', '<', '>', '/', '\'.
+    /**
+     * Mix stream task ID, a string of up to 256 characters. You cannot include URL keywords, otherwise publishing stream and playing stream will fails. Only support numbers, English characters and '~', '!', '@', '$', '%', '^', '&', '*', '(', ')', '_', '+', '=', '-', '`', ';', '’', ',', '&#46;', '<', '>', '/', '\'.
+     */
     taskID: string
 
-    /// The audio configuration of the mix stream task object
+    /**
+     * The audio configuration of the mix stream task object
+     */
     audioConfig: ZegoMixerAudioConfig
 
-    /// The video configuration of the mix stream task object
+    /**
+     * The video configuration of the mix stream task object
+     */
     videoConfig: ZegoMixerVideoConfig
 
-    /// The input stream list for the mix stream task object
+    /**
+     * The input stream list for the mix stream task object
+     */
     inputList: ZegoMixerInput[]
 
-    /// The output list of the mix stream task object
+    /**
+     * The output list of the mix stream task object
+     */
     outputList: ZegoMixerOutput[]
 
-    /// The watermark of the mix stream task object
+    /**
+     * The watermark of the mix stream task object
+     */
     watermark: ZegoWatermark
 
-    /// The background image of the mix stream task object
+    /**
+     * The background image of the mix stream task object
+     */
     backgroundImageURL: string
 
-    /// Enable or disable sound level callback for the task. If enabled, then the remote player can get the soundLevel of every stream in the inputlist by [onMixerSoundLevelUpdate] callback.
+    /**
+     * Enable or disable sound level callback for the task. If enabled, then the remote player can get the soundLevel of every stream in the inputlist by [onMixerSoundLevelUpdate] callback.
+     */
     enableSoundLevel: boolean
 
-    /// The advanced configuration, such as specifying video encoding and others. If you need to use it, contact ZEGO technical support.
+    /**
+     * The advanced configuration, such as specifying video encoding and others. If you need to use it, contact ZEGO technical support.
+     */
     advancedConfig: {[key: string]: string}
 }
 
+
+/**
+ * Auto mix stream task object.
+ * 
+ * Description: When using [StartAutoMixerTask] function to start an auto stream mixing task to the ZEGO RTC server, user need to set this parameter to configure the auto stream mixing task, including the task ID, room ID, audio configuration, output stream list, and whether to enable the sound level callback.
+ * Use cases: This configuration is required when an auto stream mixing task is requested to the ZEGO RTC server.
+ * Caution: As an argument passed when [StartAutoMixerTask] function is called.
+ */
+export interface ZegoAutoMixerTask {
+
+    /**
+     * The taskID of the auto mixer task.Description: Auto stream mixing task id, must be unique in a room.Use cases: User need to set this parameter when initiating an auto stream mixing task.Required: Yes.Recommended value: Set this parameter based on requirements.Value range: A string up to 256 bytes.Caution: When starting a new auto stream mixing task, only one auto stream mixing task ID can exist in a room, that is, to ensure the uniqueness of task ID. You are advised to associate task ID with room ID. You can directly use the room ID as the task ID.Cannot include URL keywords, for example, 'http' and '?' etc, otherwise publishing stream and playing stream will fail. Only support numbers, English characters and '~', '!', '@', '$', '%', '^', '&', '*', '(', ')', '_', '+', '=', '-', '`', ';', '’', ',', '.', '<', '>', '/', '\'.
+     */
+    taskID: string
+  
+    /**
+     * The roomID of the auto mixer task.Description: Auto stream mixing task id.Use cases: User need to set this parameter when initiating an auto stream mixing task.Required: Yes.Recommended value: Set this parameter based on requirements.Value range: A string up to 128 bytes.Caution: Only support numbers, English characters and '~', '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+', '=', '-', '`', ';', '’', ',', '.', '<', '>', '/', '\'.
+     */
+    roomID: string
+  
+    /**
+     * The audio config of the auto mixer task.Description: The audio config of the auto mixer task.Use cases: If user needs special requirements for the audio config of the auto stream mixing task, such as adjusting the audio bitrate, user can set this parameter as required. Otherwise, user do not need to set this parameter.Required: No.Default value: The default audio bitrate is `48 kbps`, the default audio channel is `ZEGO_AUDIO_CHANNEL_MONO`, the default encoding ID is `ZEGO_AUDIO_CODEC_ID_DEFAULT`, and the default multi-channel audio stream mixing mode is `ZEGO_AUDIO_MIX_MODE_RAW`.Recommended value: Set this parameter based on requirements.
+     */
+    audioConfig: ZegoMixerAudioConfig
+  
+    /**
+     * The output list of the auto mixer task.Description: The output list of the auto stream mixing task, items in the list are URL or stream ID, if the item set to be URL format, only RTMP URL surpported, for example rtmp://xxxxxxxx.Use cases: User need to set this parameter to specify the mix stream output target when starting an auto stream mixing task.Required: Yes.
+     */
+    outputList: ZegoMixerOutput[]
+  
+    /**
+     * Enable or disable sound level callback for the task. If enabled, then the remote player can get the sound level of every stream in the inputlist by [onAutoMixerSoundLevelUpdate] callback.Description: Enable or disable sound level callback for the task.If enabled, then the remote player can get the sound level of every stream in the inputlist by [onAutoMixerSoundLevelUpdate] callback.Use cases: This parameter needs to be configured if user need the sound level information of every stream when an auto stream mixing task started.Required: No.Default value: `false`.Recommended value: Set this parameter based on requirements.
+     */
+    enableSoundLevel: boolean
+}
 
 /// Broadcast message info.
 ///
