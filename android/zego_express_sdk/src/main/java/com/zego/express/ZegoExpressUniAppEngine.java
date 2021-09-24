@@ -625,8 +625,12 @@ public class ZegoExpressUniAppEngine extends UniModule {
             if (config.containsKey("isUserStatusNotify")) {
                 roomConfigObj.isUserStatusNotify = config.getBoolean("isUserStatusNotify");
             }
-            roomConfigObj.maxMemberCount = config.getIntValue("maxMemberCount");
-            roomConfigObj.token = config.getString("token");
+            if (config.containsKey("maxMemberCount")) {
+                roomConfigObj.maxMemberCount = config.getIntValue("maxMemberCount");
+            }
+            if (config.containsKey("token")) {
+                roomConfigObj.token = config.getString("token");
+            }
 
             ZegoExpressEngine.getEngine().loginRoom(roomID, userObj, roomConfigObj);
         } else {
