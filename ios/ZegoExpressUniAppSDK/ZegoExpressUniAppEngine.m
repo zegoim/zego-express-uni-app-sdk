@@ -9,6 +9,7 @@
 #import <ZegoExpressEngine/ZegoExpressEngine.h>
 #import "ZegoExpressUniAppViewStore.h"
 #import "DCUniConvert.h"
+#import "ZegoLog.h"
 
 @interface ZegoExpressUniAppEngine ()<ZegoEventHandler, ZegoApiCalledEventHandler, ZegoMediaPlayerEventHandler>
 
@@ -150,6 +151,20 @@ UNI_EXPORT_METHOD(@selector(callMethod:callback:))
     [self callbackNotNull:callback];
 }
 
+- (void)callExperimentalAPI:(NSDictionary *)params callback:(UniModuleKeepAliveCallback)callback {
+    NSString *apiParam = params[@"params"];
+    NSString *result = [[ZegoExpressEngine sharedEngine] callExperimentalAPI:apiParam];
+    [self callbackNotNull:callback data:result];
+}
+
+- (void)setDummyCaptureImagePath:(NSDictionary *)params callback:(UniModuleKeepAliveCallback)callback {
+    NSString *filePath = params[@"filePath"];
+    ZegoPublishChannel channel = [DCUniConvert NSInteger:params[@"channel"]];
+    
+    [[ZegoExpressEngine sharedEngine] setDummyCaptureImagePath:filePath channel:channel];
+    [self callbackNotNull:callback];
+}
+
 #pragma mark - 房间
 - (void)loginRoom:(NSDictionary *)params callback:(UniModuleKeepAliveCallback)callback {
     NSString *roomID = [DCUniConvert NSString:params[@"roomID"]];
@@ -180,29 +195,6 @@ UNI_EXPORT_METHOD(@selector(callMethod:callback:))
 - (void)logoutRoom:(NSDictionary *)params callback:(UniModuleKeepAliveCallback)callback {
     NSString *roomID = [DCUniConvert NSString:params[@"roomID"]];
     [[ZegoExpressEngine sharedEngine] logoutRoom:roomID];
-    [self callbackNotNull:callback];
-}
-
-- (void)loginMultiRoom:(NSDictionary *)params callback:(UniModuleKeepAliveCallback)callback {
-    NSString *roomID = [DCUniConvert NSString:params[@"roomID"]];
-    NSDictionary *config = params[@"config"];
-    
-    ZegoRoomConfig *roomConfig = [ZegoRoomConfig defaultConfig];
-    if (config && [config isKindOfClass:[NSDictionary class]]) {
-        if (config[@"userUpdate"]) {
-            roomConfig.isUserStatusNotify = [DCUniConvert BOOL:config[@"userUpdate"]];
-        }
-        if (config[@"isUserStatusNotify"]) {
-            roomConfig.isUserStatusNotify = [DCUniConvert BOOL:config[@"isUserStatusNotify"]];
-        }
-        if (config[@"maxMemberCount"]) {
-            roomConfig.maxMemberCount = (unsigned int)[DCUniConvert NSUInteger:config[@"maxMemberCount"]];
-        }
-        if (config[@"token"]) {
-            roomConfig.token = [DCUniConvert NSString:config[@"token"]];
-        }
-    }
-    [[ZegoExpressEngine sharedEngine] loginMultiRoom:roomID config:roomConfig];
     [self callbackNotNull:callback];
 }
 
@@ -673,6 +665,269 @@ UNI_EXPORT_METHOD(@selector(callMethod:callback:))
     [self callbackNotNull:callback];
 }
 
+#pragma mark - Mixer
+- (void)startMixerTask:(NSDictionary *)params callback:(UniModuleKeepAliveCallback)callback {
+
+    NSDictionary *taskMap = params[@"task"];
+
+    NSString *taskID = taskMap[@"taskID"];
+    ZegoMixerTask *taskObject = [[ZegoMixerTask alloc] initWithTaskID:taskID];
+    
+    // MixerInput
+    NSArray<NSDictionary *> *inputMapList = taskMap[@"inputList"];
+    if (inputMapList && inputMapList.count > 0) {
+        NSMutableArray<ZegoMixerInput *> *inputListObject = @[].mutableCopy;
+        for (NSDictionary *inputMap in inputMapList) {
+            NSString *streamID = inputMap[@"streamID"];
+            NSInteger contentType = [DCUniConvert NSInteger:inputMap[@"contentType"]];
+            CGRect rect = CGRectMake([DCUniConvert NSInteger:inputMap[@"layout"][@"x"]],
+                                     [DCUniConvert NSInteger:inputMap[@"layout"][@"y"]],
+                                     [DCUniConvert NSInteger:inputMap[@"layout"][@"width"]],
+                                     [DCUniConvert NSInteger:inputMap[@"layout"][@"height"]]);
+            unsigned int soundLevelID = (unsigned int)[DCUniConvert NSUInteger:inputMap[@"soundLevelID"]];
+            ZegoMixerInput *inputObject = [[ZegoMixerInput alloc] initWithStreamID:streamID contentType:(ZegoMixerInputContentType)contentType layout:rect soundLevelID:soundLevelID];
+            [inputListObject addObject:inputObject];
+        }
+        [taskObject setInputList:inputListObject];
+    }
+    
+    // MixerOutput
+    NSArray<NSDictionary *> *outputMapList = taskMap[@"outputList"];
+    if (outputMapList && outputMapList.count > 0) {
+        NSMutableArray<ZegoMixerOutput *> *outputListObject = @[].mutableCopy;
+        for (NSDictionary *outputMap in outputMapList) {
+            NSString *target = outputMap[@"target"];
+            ZegoMixerOutput *outputObject = [[ZegoMixerOutput alloc] initWithTarget:target];
+            [outputListObject addObject:outputObject];
+        }
+        [taskObject setOutputList:outputListObject];
+    }
+    
+    // AudioConfig
+    NSDictionary *audioConfigMap = taskMap[@"audioConfig"];
+    if (audioConfigMap && audioConfigMap.count > 0) {
+        NSInteger bitrate = [DCUniConvert NSInteger:audioConfigMap[@"bitrate"]];
+        NSInteger channel = [DCUniConvert NSInteger:audioConfigMap[@"channel"]];
+        NSInteger codecID = [DCUniConvert NSInteger:audioConfigMap[@"codecID"]];
+        ZegoMixerAudioConfig *audioConfigObject = [[ZegoMixerAudioConfig alloc] init];
+        audioConfigObject.bitrate = (int)bitrate;
+        audioConfigObject.channel = (ZegoAudioChannel)channel;
+        audioConfigObject.codecID = (ZegoAudioCodecID)codecID;
+        
+        [taskObject setAudioConfig:audioConfigObject];
+    }
+    
+    // VideoConfig
+    NSDictionary *videoConfigMap = taskMap[@"videoConfig"];
+    if (videoConfigMap && videoConfigMap.count > 0) {
+        NSInteger width = [DCUniConvert NSInteger:videoConfigMap[@"width"]];
+        NSInteger height = [DCUniConvert NSInteger:videoConfigMap[@"height"]];
+        NSInteger fps = [DCUniConvert NSInteger:videoConfigMap[@"fps"]];
+        NSInteger bitrate = [DCUniConvert NSInteger:videoConfigMap[@"bitrate"]];
+        ZegoMixerVideoConfig *videoConfigObject = [[ZegoMixerVideoConfig alloc] init];
+        videoConfigObject.resolution = CGSizeMake((CGFloat)width, (CGFloat)height);
+        videoConfigObject.bitrate = (int)bitrate;
+        videoConfigObject.fps = (int)fps;
+
+        [taskObject setVideoConfig:videoConfigObject];
+    }
+    
+    // Watermark
+    NSDictionary *watermarkMap = taskMap[@"watermark"];
+    if (watermarkMap && watermarkMap.count > 0) {
+        NSString *imageURL = watermarkMap[@"imageURL"];
+        if (imageURL && [imageURL length] > 0) {
+            CGRect rect = CGRectMake([DCUniConvert NSInteger:watermarkMap[@"layout"][@"x"]],
+                                     [DCUniConvert NSInteger:watermarkMap[@"layout"][@"y"]],
+                                     [DCUniConvert NSInteger:watermarkMap[@"layout"][@"width"]],
+                                     [DCUniConvert NSInteger:watermarkMap[@"layout"][@"height"]]);
+            ZegoWatermark *watermarkObject = [[ZegoWatermark alloc] initWithImageURL:imageURL layout:rect];
+
+            [taskObject setWatermark:watermarkObject];
+        }
+    }
+    
+    // Background Image
+    NSString *backgroundImageURL = taskMap[@"backgroundImageURL"];
+    if (backgroundImageURL.length > 0) {
+        [taskObject setBackgroundImageURL:backgroundImageURL];
+    }
+    
+    // Enable SoundLevel
+    BOOL enableSoundLevel = [DCUniConvert BOOL:taskMap[@"enableSoundLevel"]];
+    [taskObject enableSoundLevel:enableSoundLevel];
+    
+    // Set AdvancedConfig
+    NSDictionary<NSString *, NSString *> *advancedConfig = taskMap[@"advancedConfig"];
+    [taskObject setAdvancedConfig:advancedConfig];
+    
+    [[ZegoExpressEngine sharedEngine] startMixerTask:taskObject callback:^(int errorCode, NSDictionary * _Nullable extendedData) {
+        
+        NSString *extendedDataJsonString = @"{}";
+        if (extendedData) {
+            NSError *error;
+            NSData *jsonData = [NSJSONSerialization dataWithJSONObject:extendedData options:NSJSONWritingPrettyPrinted error:&error];
+            if (jsonData) {
+                extendedDataJsonString = [[NSString alloc]initWithData:jsonData encoding:NSUTF8StringEncoding];
+            }
+        }
+        NSDictionary *result = @{
+            @"errorCode": @(errorCode),
+            @"extendedData": extendedDataJsonString
+        };
+        [self callbackNotNull:callback data:result];
+    }];
+}
+
+- (void)stopMixerTask:(NSDictionary *)params callback:(UniModuleKeepAliveCallback)callback {
+
+    NSDictionary *taskMap = params[@"task"];
+
+    NSString *taskID = taskMap[@"taskID"];
+    ZegoMixerTask *taskObject = [[ZegoMixerTask alloc] initWithTaskID:taskID];
+
+    // MixerInput
+    NSArray<NSDictionary *> *inputListMap = taskMap[@"inputList"];
+    if (inputListMap && inputListMap.count > 0) {
+        NSMutableArray<ZegoMixerInput *> *inputListObject = [[NSMutableArray alloc] init];
+        for (NSDictionary *inputMap in inputListMap) {
+            NSString *streamID = inputMap[@"streamID"];
+            NSInteger contentType = [DCUniConvert NSInteger:inputMap[@"contentType"]];
+            CGRect rect = CGRectMake([DCUniConvert NSInteger:inputMap[@"layout"][@"x"]],
+                                     [DCUniConvert NSInteger:inputMap[@"layout"][@"y"]],
+                                     [DCUniConvert NSInteger:inputMap[@"layout"][@"width"]],
+                                     [DCUniConvert NSInteger:inputMap[@"layout"][@"height"]]);
+            unsigned int soundLevelID = (unsigned int)[DCUniConvert NSInteger:inputMap[@"soundLevelID"]];
+            ZegoMixerInput *inputObject = [[ZegoMixerInput alloc] initWithStreamID:streamID contentType:(ZegoMixerInputContentType)contentType layout:rect soundLevelID:soundLevelID];
+            [inputListObject addObject:inputObject];
+        }
+        [taskObject setInputList:inputListObject];
+    }
+
+    // MixerOutput
+    NSArray<NSDictionary *> *outputListMap = taskMap[@"outputList"];
+    if (outputListMap && outputListMap.count > 0) {
+        NSMutableArray<ZegoMixerOutput *> *outputListObject = [[NSMutableArray alloc] init];
+        for (NSDictionary *outputMap in outputListMap) {
+            NSString *target = outputMap[@"target"];
+            ZegoMixerOutput *outputObject = [[ZegoMixerOutput alloc] initWithTarget:target];
+            [outputListObject addObject:outputObject];
+        }
+        [taskObject setOutputList:outputListObject];
+    }
+
+    // no need to set audio config
+
+    // no need to set video config
+
+    // no need to set watermark
+
+    // no need to set background image
+
+    // no need to set enable sound level
+
+    [[ZegoExpressEngine sharedEngine] stopMixerTask:taskObject callback:^(int errorCode) {
+        [self callbackNotNull:callback data:@{@"errorCode": @(errorCode)}];
+    }];
+}
+
+- (void)startAutoMixerTask:(NSDictionary *)params callback:(UniModuleKeepAliveCallback)callback {
+    
+    NSDictionary *taskMap = params[@"task"];
+
+    NSString *taskID = taskMap[@"taskID"];
+    NSString *roomID = taskMap[@"roomID"];
+
+    ZegoAutoMixerTask *taskObject = [[ZegoAutoMixerTask alloc] init];
+    taskObject.taskID = taskID;
+    taskObject.roomID = roomID;
+
+    // MixerOutput
+    NSArray<NSDictionary *> *outputListMap = taskMap[@"outputList"];
+    if (outputListMap && outputListMap.count > 0) {
+        NSMutableArray<ZegoMixerOutput *> *outputListObject = [[NSMutableArray alloc] init];
+        for (NSDictionary *outputMap in outputListMap) {
+            NSString *target = outputMap[@"target"];
+            ZegoMixerOutput *outputObject = [[ZegoMixerOutput alloc] initWithTarget:target];
+            [outputListObject addObject:outputObject];
+        }
+        taskObject.outputList = outputListObject;
+    }
+
+    // AudioConfig
+    NSDictionary *audioConfigMap = taskMap[@"audioConfig"];
+    if (audioConfigMap && audioConfigMap.count > 0) {
+        NSInteger bitrate = [DCUniConvert NSInteger:audioConfigMap[@"bitrate"]];
+        NSInteger channel = [DCUniConvert NSInteger:audioConfigMap[@"channel"]];
+        NSInteger codecID = [DCUniConvert NSInteger:audioConfigMap[@"codecID"]];
+        ZegoMixerAudioConfig *audioConfigObject = [[ZegoMixerAudioConfig alloc] init];
+        audioConfigObject.bitrate = (int)bitrate;
+        audioConfigObject.channel = (ZegoAudioChannel)channel;
+        audioConfigObject.codecID = (ZegoAudioCodecID)codecID;
+
+        taskObject.audioConfig = audioConfigObject;
+    }
+
+    // Enable SoundLevel
+    BOOL enableSoundLevel = [DCUniConvert NSInteger:taskMap[@"enableSoundLevel"]];
+    taskObject.enableSoundLevel = enableSoundLevel;
+
+    [[ZegoExpressEngine sharedEngine] startAutoMixerTask:taskObject callback:^(int errorCode, NSDictionary * _Nullable extendedData) {
+
+        NSString *extendedDataJsonString = @"{}";
+        if (extendedData) {
+            NSError *error;
+            NSData *jsonData = [NSJSONSerialization dataWithJSONObject:extendedData options:NSJSONWritingPrettyPrinted error:&error];
+            if (jsonData) {
+                extendedDataJsonString = [[NSString alloc]initWithData:jsonData encoding:NSUTF8StringEncoding];
+            }
+        }
+        NSDictionary *result = @{
+            @"errorCode": @(errorCode),
+            @"extendedData": extendedDataJsonString
+        };
+        [self callbackNotNull:callback data:result];
+    }];
+}
+
+- (void)stopAutoMixerTask:(NSDictionary *)params callback:(UniModuleKeepAliveCallback)callback {
+
+    NSDictionary *taskMap = params[@"task"];
+
+    NSString *taskID = taskMap[@"taskID"];
+    NSString *roomID = taskMap[@"roomID"];
+
+    ZegoAutoMixerTask *taskObject = [[ZegoAutoMixerTask alloc] init];
+    taskObject.taskID = taskID;
+    taskObject.roomID = roomID;
+
+    // MixerOutput
+    NSArray<NSDictionary *> *outputListMap = taskMap[@"outputList"];
+    if (outputListMap && outputListMap.count > 0) {
+        NSMutableArray<ZegoMixerOutput *> *outputListObject = [[NSMutableArray alloc] init];
+        for (NSDictionary *outputMap in outputListMap) {
+            NSString *target = outputMap[@"target"];
+            ZegoMixerOutput *outputObject = [[ZegoMixerOutput alloc] initWithTarget:target];
+            [outputListObject addObject:outputObject];
+        }
+        [taskObject setOutputList:outputListObject];
+    }
+
+    // no need to set audio config
+
+    // no need to set video config
+
+    // no need to set watermark
+
+    // no need to set background image
+
+    // no need to set enable sound level
+
+    [[ZegoExpressEngine sharedEngine] stopAutoMixerTask:taskObject callback:^(int errorCode) {
+        [self callbackNotNull:callback data:@{@"errorCode": @(errorCode)}];
+    }];
+}
+
 #pragma mark - 设备控制相关
 
 - (void)muteMicrophone:(NSDictionary *)params callback:(UniModuleKeepAliveCallback)callback {
@@ -986,6 +1241,28 @@ UNI_EXPORT_METHOD(@selector(callMethod:callback:))
 
 - (void)onPlayerVideoSizeChanged:(CGSize)size streamID:(NSString *)streamID {
     [self sendEvent:kZegoExpressUniAppEngineEventPlayerVideoSizeChanged, streamID, @(size.width), @(size.height), nil];
+}
+
+- (void)onMixerRelayCDNStateUpdate:(NSArray<ZegoStreamRelayCDNInfo *> *)infoList taskID:(NSString *)taskID {
+    NSMutableArray *infoArray = @[].mutableCopy;
+    [infoList enumerateObjectsUsingBlock:^(ZegoStreamRelayCDNInfo * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+        [infoArray addObject:@{
+            @"url": obj.url,
+            @"state": @(obj.state),
+            @"stateTime": @(obj.stateTime),
+            @"updateReason": @(obj.updateReason)
+        }];
+    }];
+    [self sendEvent:kZegoExpressUniAppEngineEventMixerRelayCDNStateUpdate, taskID, infoArray, nil];
+}
+
+- (void)onMixerSoundLevelUpdate:(NSDictionary<NSNumber *,NSNumber *> *)soundLevels {
+    /// uniapp 传递数据到 js 层，key 应为 string 类型
+    NSMutableDictionary *mutableDic = @{}.mutableCopy;
+    [soundLevels enumerateKeysAndObjectsUsingBlock:^(NSNumber * _Nonnull key, NSNumber * _Nonnull obj, BOOL * _Nonnull stop) {
+        mutableDic[key.stringValue] = obj;
+    }];
+    [self sendEvent:kZegoExpressUniAppEngineEventMixerSoundLevelUpdate, mutableDic, nil];
 }
 
 - (void)onCapturedSoundLevelUpdate:(NSNumber *)soundLevel {
@@ -1706,6 +1983,13 @@ UNI_EXPORT_METHOD(@selector(callMethod:callback:))
     int angle = [params[@"angle"] intValue];
 
     [ZegoExpressEngine.sharedEngine enableVirtualStereo:enable angle:angle];
+    [self callbackNotNull:callback];
+}
+
+#pragma mark - Private
+- (void)setPluginVersion:(NSDictionary *)params callback:(UniModuleKeepAliveCallback)callback {
+    NSString *version = params[@"version"];
+    ZGLog(@"*** Plugin Version: %@", version);
     [self callbackNotNull:callback];
 }
 

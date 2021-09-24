@@ -1,3 +1,4 @@
+import { pluginVersion } from "../index";
 import { 
     ZegoAccurateSeekConfig,
     ZegoAECMode,
@@ -45,7 +46,11 @@ import {
     ZegoVideoStreamType,
     ZegoVoiceChangerParam,
     ZegoVoiceChangerPreset,
-    ZegoWatermark
+    ZegoWatermark,
+    ZegoAutoMixerTask,
+    ZegoMixerStartResult,
+    ZegoMixerStopResult,
+    ZegoMixerTask
 } from "../ZegoExpressDefines";
 
 import { ZegoEventListener, ZegoAnyCallback, ZegoMediaPlayerListener } from "../ZegoExpressEventHandler";
@@ -92,6 +97,7 @@ export class ZegoExpressEngineImpl {
         }
         await ZegoExpressEngineImpl._callMethod("createEngine", { appID, appSign, isTestEnv, scenario } );
         engine = new ZegoExpressEngineImpl();
+        await ZegoExpressEngineImpl._callMethod("setPluginVersion", { version: pluginVersion });
 
         return engine;
     }
@@ -150,6 +156,14 @@ export class ZegoExpressEngineImpl {
 
     uploadLog(): Promise<void> {
         return ZegoExpressEngineImpl._callMethod("uploadLog");
+    }
+
+    callExperimentalAPI(params: string): Promise<string> {
+        return ZegoExpressEngineImpl._callMethod("callExperimentalAPI", { params });
+    }
+
+    setDummyCaptureImagePath(filePath: string, channel = ZegoPublishChannel.Main): Promise<void> {
+        return ZegoExpressEngineImpl._callMethod("setDummyCaptureImagePath", { filePath, channel } )
     }
 
     loginRoom(roomID: string, user: ZegoUser, config?: ZegoRoomConfig): Promise<void> {
@@ -334,6 +348,14 @@ export class ZegoExpressEngineImpl {
 
     enableCheckPoc(enable: boolean): Promise<void> {
         return ZegoExpressEngineImpl._callMethod("enableCheckPoc", { enable });
+    }
+
+    startMixerTask(task: ZegoMixerTask): Promise<ZegoMixerStartResult> {
+        return ZegoExpressEngineImpl._callMethod("startMixerTask", { task });
+    }
+
+    stopMixerTask(task: ZegoMixerTask): Promise<ZegoMixerStopResult> {
+        return ZegoExpressEngineImpl._callMethod("stopMixerTask", { task });
     }
 
     muteMicrophone(mute: boolean): Promise<void> {

@@ -1,3 +1,4 @@
+import { ZegoStreamRelayCDNInfo } from 'index'
 import {
     ZegoRoomState,
     ZegoPublisherState,
@@ -251,6 +252,37 @@ export interface ZegoEventListener {
      * @property {string} command Command content received
      */
     IMRecvCustomCommand: (roomID: string, fromUser: ZegoUser, command: string) => void;
+
+    /**
+     * @event ZegoExpressEngine#onMixerRelayCDNStateUpdate
+     * @desc The callback triggered when the state of relayed streaming of the mixed stream to CDN changes.
+     *
+     * Description: The general situation of the mixing task on the ZEGO RTC server will push the output stream to the CDN using the RTMP protocol, and the state change during the push process will be notified from the callback function.
+     * Use cases: It is often used when multiple video images are required to synthesize a video using mixed streaming, such as education, live teacher and student images.
+     * When to trigger: After the developer calls the [startMixerTask] function to start mixing, when the ZEGO RTC server pushes the output stream to the CDN, there is a state change.
+     * Restrictions: None.
+     * Related callbacks: Develop can get the sound update notification of each single stream in the mixed stream through [OnMixerSoundLevelUpdate].
+     * Related APIs: Develop can start a mixed flow task through [startMixerTask].
+     *
+     * @property {string} taskID The mixing task ID. Value range: the length does not exceed 256. Caution: This parameter is in string format and cannot contain URL keywords, such as `http` and `?` etc., otherwise the push and pull flow will fail. Only supports numbers, English characters and'~','!','@','$','%','^','&','*','(',')','_' ,'+','=','-','`',';',''',',','.','<','>','/','\'.
+     * @property {ZegoStreamRelayCDNInfo[]} infoList List of information that the current CDN is being mixed.
+     */
+    mixerRelayCDNStateUpdate: (taskID: string, infoList: ZegoStreamRelayCDNInfo[]) => void;
+
+    /**
+     * @event ZegoExpressEngine#onMixerRelayCDNStateUpdate
+     * @desc The callback triggered when the sound level of any input stream changes in the stream mixing process.
+     *
+     * Description: Developers can use this callback to display the effect of which stream’s anchor is talking on the UI interface of the mixed stream of the audience.
+     * Use cases: It is often used when multiple video images are required to synthesize a video using mixed streaming, such as education, live teacher and student images.
+     * When to trigger: After the developer calls the [startPlayingStream] function to start playing the mixed stream.
+     * Restrictions: Due to the high frequency of this callback, please do not perform time-consuming tasks or UI operations in this callback to avoid stalling.
+     * Related callbacks: [OnMixerRelayCDNStateUpdate] can be used to get update notification of mixing stream repost CDN status.
+     * Related APIs: Develop can start a mixed flow task through [startMixerTask].
+     *
+     * @property {Map<number, number>} soundLevels The sound key-value pair of each single stream in the mixed stream, the key is the soundLevelID of each single stream, and the value is the sound value of the corresponding single stream. Value range: The value range of value is 0.0 ~ 100.0.
+     */
+    mixerSoundLevelUpdate: (soundLevels: Map<number, number>) => void;
 }
 
 export interface ZegoMediaPlayerListener {

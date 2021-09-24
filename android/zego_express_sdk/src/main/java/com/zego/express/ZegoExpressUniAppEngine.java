@@ -11,7 +11,6 @@ import android.support.v4.content.ContextCompat;
 import android.util.Base64;
 import android.util.Log;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 
@@ -46,6 +45,8 @@ import im.zego.zegoexpress.callback.IZegoMediaPlayerLoadResourceCallback;
 import im.zego.zegoexpress.callback.IZegoMediaPlayerSeekToCallback;
 import im.zego.zegoexpress.callback.IZegoMediaPlayerTakeSnapshotCallback;
 import im.zego.zegoexpress.callback.IZegoMediaPlayerVideoHandler;
+import im.zego.zegoexpress.callback.IZegoMixerStartCallback;
+import im.zego.zegoexpress.callback.IZegoMixerStopCallback;
 import im.zego.zegoexpress.callback.IZegoPlayerTakeSnapshotCallback;
 import im.zego.zegoexpress.callback.IZegoPublisherSetStreamExtraInfoCallback;
 import im.zego.zegoexpress.callback.IZegoPublisherTakeSnapshotCallback;
@@ -62,6 +63,7 @@ import im.zego.zegoexpress.constants.ZegoEngineState;
 import im.zego.zegoexpress.constants.ZegoMediaPlayerAudioChannel;
 import im.zego.zegoexpress.constants.ZegoMediaPlayerNetworkEvent;
 import im.zego.zegoexpress.constants.ZegoMediaPlayerState;
+import im.zego.zegoexpress.constants.ZegoMixerInputContentType;
 import im.zego.zegoexpress.constants.ZegoOrientation;
 import im.zego.zegoexpress.constants.ZegoPlayerMediaEvent;
 import im.zego.zegoexpress.constants.ZegoPlayerState;
@@ -85,6 +87,7 @@ import im.zego.zegoexpress.entity.ZegoAccurateSeekConfig;
 import im.zego.zegoexpress.entity.ZegoAudioConfig;
 import im.zego.zegoexpress.entity.ZegoAudioEffectPlayConfig;
 import im.zego.zegoexpress.entity.ZegoAudioFrameParam;
+import im.zego.zegoexpress.entity.ZegoAutoMixerTask;
 import im.zego.zegoexpress.entity.ZegoBarrageMessageInfo;
 import im.zego.zegoexpress.entity.ZegoBeautifyOption;
 import im.zego.zegoexpress.entity.ZegoBroadcastMessageInfo;
@@ -92,6 +95,11 @@ import im.zego.zegoexpress.entity.ZegoCDNConfig;
 import im.zego.zegoexpress.entity.ZegoCanvas;
 import im.zego.zegoexpress.entity.ZegoEngineConfig;
 import im.zego.zegoexpress.entity.ZegoLogConfig;
+import im.zego.zegoexpress.entity.ZegoMixerAudioConfig;
+import im.zego.zegoexpress.entity.ZegoMixerInput;
+import im.zego.zegoexpress.entity.ZegoMixerOutput;
+import im.zego.zegoexpress.entity.ZegoMixerTask;
+import im.zego.zegoexpress.entity.ZegoMixerVideoConfig;
 import im.zego.zegoexpress.entity.ZegoNetWorkResourceCache;
 import im.zego.zegoexpress.entity.ZegoPlayStreamQuality;
 import im.zego.zegoexpress.entity.ZegoPlayerConfig;
@@ -102,6 +110,7 @@ import im.zego.zegoexpress.entity.ZegoRoomConfig;
 import im.zego.zegoexpress.entity.ZegoRoomExtraInfo;
 import im.zego.zegoexpress.entity.ZegoSEIConfig;
 import im.zego.zegoexpress.entity.ZegoStream;
+import im.zego.zegoexpress.entity.ZegoStreamRelayCDNInfo;
 import im.zego.zegoexpress.entity.ZegoUser;
 import im.zego.zegoexpress.entity.ZegoVideoConfig;
 import im.zego.zegoexpress.entity.ZegoVideoFrameParam;
@@ -110,18 +119,19 @@ import im.zego.zegoexpress.entity.ZegoWatermark;
 import io.dcloud.feature.uniapp.common.UniModule;
 
 public class ZegoExpressUniAppEngine extends UniModule {
-    static HashMap<String, ZegoPlayStreamStore> playViewMap = new HashMap<String, ZegoPlayStreamStore>();
-    static HashMap<String, ZegoCanvas> previewViewMap = new HashMap<String, ZegoCanvas>();
-    static HashMap<String, ZegoCanvas> mediaPlayerViewMap = new HashMap<String, ZegoCanvas>();
+    static HashMap<String, ZegoPlayStreamStore> playViewMap = new HashMap<>();
+    static HashMap<String, ZegoCanvas> previewViewMap = new HashMap<>();
+    static HashMap<String, ZegoCanvas> mediaPlayerViewMap = new HashMap<>();
 
-    HashMap<String, ZegoMediaPlayer> mediaPlayerDict = new HashMap<String, ZegoMediaPlayer>();
-    HashMap<String, ZegoAudioEffectPlayer> audioEffectPlayerDict = new HashMap<String, ZegoAudioEffectPlayer>();
+    HashMap<String, ZegoMediaPlayer> mediaPlayerDict = new HashMap<>();
+    HashMap<String, ZegoAudioEffectPlayer> audioEffectPlayerDict = new HashMap<>();
 
     private boolean mIsInited = false;
 
+    /* send event to js */
     // 引擎回调事件
     private void sendEvent(String eventName, Object... varargs) {
-        List args = Arrays.asList(varargs);
+        List<Object> args = Arrays.asList(varargs);
         Map<String, Object> map = new HashMap<>();
         map.put("data", args);
         if (!mWXSDKInstance.isDestroy()) {
@@ -131,7 +141,7 @@ public class ZegoExpressUniAppEngine extends UniModule {
 
     // 媒体播放器回调事件
     private void sendMediaPlayerEvent(String eventName, Integer index, Object... varargs) {
-        List args = Arrays.asList(varargs);
+        List<Object> args = Arrays.asList(varargs);
         Map<String, Object> map = new HashMap<>();
         map.put("data", args);
         map.put("idx", index);
@@ -155,6 +165,7 @@ public class ZegoExpressUniAppEngine extends UniModule {
         return "im.zego.express";
     }
 
+    @SuppressWarnings("unused")
     @JSMethod(uiThread = false)
     public void callMethod(JSONObject params, JSCallback callback) {
         String methodName = params.getString("method");
@@ -176,6 +187,8 @@ public class ZegoExpressUniAppEngine extends UniModule {
         }
     }
 
+    /** Engine */
+    @SuppressWarnings("unused")
     public void createEngine(JSONObject params, JSCallback callback) {
         final long appID = params.getLong("appID");
         final String appSign = params.getString("appSign");
@@ -243,7 +256,7 @@ public class ZegoExpressUniAppEngine extends UniModule {
                     JSONObject userMap = new JSONObject();
                     userMap.put("userID", info.updateUser.userID);
                     userMap.put("userName", info.updateUser.userName);
-                    infoMap.put("updateUser", info.updateUser);
+                    infoMap.put("updateUser", userMap);
                     roomExtraInfoArray.add(infoMap);
                 }
                 sendEvent("roomExtraInfoUpdate", roomID, roomExtraInfoArray);
@@ -407,7 +420,30 @@ public class ZegoExpressUniAppEngine extends UniModule {
             }
 
             @Override
+            public void onMixerRelayCDNStateUpdate(String taskID, ArrayList<ZegoStreamRelayCDNInfo> infoList) {
+                super.onMixerRelayCDNStateUpdate(taskID, infoList);
+                JSONArray infoArray = new JSONArray();
+                for (ZegoStreamRelayCDNInfo info : infoList) {
+                    JSONObject infoMap = new JSONObject();
+                    infoMap.put("url", info.url);
+                    infoMap.put("state", info.state.value());
+                    infoMap.put("stateTime", info.stateTime);
+                    infoMap.put("updateReason", info.updateReason.value());
+
+                    infoArray.add(infoMap);
+                }
+                sendEvent("mixerRelayCDNStateUpdate", taskID, infoArray);
+            }
+
+            @Override
+            public void onMixerSoundLevelUpdate(HashMap<Integer, Float> soundLevels) {
+                super.onMixerSoundLevelUpdate(soundLevels);
+                sendEvent("mixerSoundLevelUpdate", soundLevels);
+            }
+
+            @Override
             public void onCapturedSoundLevelUpdate(float soundLevel) {
+                super.onCapturedSoundLevelUpdate(soundLevel);
                 sendEvent("capturedSoundLevelUpdate", soundLevel);
             }
 
@@ -499,6 +535,7 @@ public class ZegoExpressUniAppEngine extends UniModule {
         callbackNotNull(callback);
     }
 
+    @SuppressWarnings("unused")
     public void destroyEngine(final JSCallback callback) {
         if (mIsInited) {
             ZegoExpressEngine.destroyEngine(new IZegoDestroyCompletionCallback() {
@@ -512,6 +549,7 @@ public class ZegoExpressUniAppEngine extends UniModule {
         }
     }
 
+    @SuppressWarnings("unused")
     public void setEngineConfig(JSONObject map, JSCallback callback) {
         JSONObject config = map.getJSONObject("config");
         ZegoEngineConfig configObj = new ZegoEngineConfig();
@@ -527,6 +565,7 @@ public class ZegoExpressUniAppEngine extends UniModule {
         callbackNotNull(callback);
     }
 
+    @SuppressWarnings("unused")
     public void setLogConfig(JSONObject map, JSCallback callback) {
         JSONObject config = map.getJSONObject("config");
         if(config != null) {
@@ -542,15 +581,35 @@ public class ZegoExpressUniAppEngine extends UniModule {
         callbackNotNull(callback);
     }
 
+    @SuppressWarnings("unused")
     public void getVersion(JSCallback callback) {
         callbackNotNull(callback, ZegoExpressEngine.getVersion());
     }
 
+    @SuppressWarnings("unused")
     public void uploadLog(JSCallback callback) {
         ZegoExpressEngine.getEngine().uploadLog();
         callbackNotNull(callback);
     }
 
+    @SuppressWarnings("unused")
+    public void callExperimentalAPI(JSONObject map, JSCallback callback) {
+        String params = map.getString("params");
+        String result = ZegoExpressEngine.getEngine().callExperimentalAPI(params);
+        callbackNotNull(callback, result);
+    }
+
+    @SuppressWarnings("unused")
+    public void setDummyCaptureImagePath(JSONObject map, JSCallback callback) {
+        String filePath = map.getString("filePath");
+        ZegoPublishChannel channel = ZegoPublishChannel.getZegoPublishChannel(map.getInteger("channel"));
+
+        ZegoExpressEngine.getEngine().setDummyCaptureImagePath(filePath, channel);
+        callbackNotNull(callback);
+    }
+
+    /** Room */
+    @SuppressWarnings("unused")
     public void loginRoom(JSONObject map, JSCallback callback) {
         Log.i("ZegoExpressUniAppEngine", "loginRoom: true");
         String roomID = map.getString("roomID");
@@ -566,8 +625,12 @@ public class ZegoExpressUniAppEngine extends UniModule {
             if (config.containsKey("isUserStatusNotify")) {
                 roomConfigObj.isUserStatusNotify = config.getBoolean("isUserStatusNotify");
             }
-            roomConfigObj.maxMemberCount = config.getIntValue("maxMemberCount");
-            roomConfigObj.token = config.getString("token");
+            if (config.containsKey("maxMemberCount")) {
+                roomConfigObj.maxMemberCount = config.getIntValue("maxMemberCount");
+            }
+            if (config.containsKey("token")) {
+                roomConfigObj.token = config.getString("token");
+            }
 
             ZegoExpressEngine.getEngine().loginRoom(roomID, userObj, roomConfigObj);
         } else {
@@ -576,30 +639,14 @@ public class ZegoExpressUniAppEngine extends UniModule {
         callbackNotNull(callback);
     }
 
+    @SuppressWarnings("unused")
     public void logoutRoom(JSONObject map, JSCallback callback) {
         String roomID = map.getString("roomID");
         ZegoExpressEngine.getEngine().logoutRoom(roomID);
         callbackNotNull(callback);
     }
 
-    public void loginMultiRoom(JSONObject map, JSCallback callback) {
-        String roomID = map.getString("roomID");
-        JSONObject config = map.getJSONObject("config");
-
-        ZegoRoomConfig roomConfigObj = new ZegoRoomConfig();
-        if (config.containsKey("userUpdate")) {
-            roomConfigObj.isUserStatusNotify = config.getBoolean("userUpdate");
-        }
-        if (config.containsKey("isUserStatusNotify")) {
-            roomConfigObj.isUserStatusNotify = config.getBoolean("isUserStatusNotify");
-        }
-        roomConfigObj.maxMemberCount = config.getIntValue("maxMemberCount");
-        roomConfigObj.token = config.getString("token");
-        ZegoExpressEngine.getEngine().loginMultiRoom(roomID, roomConfigObj);
-
-        callbackNotNull(callback);
-    }
-
+    @SuppressWarnings("unused")
     public void switchRoom(JSONObject map, JSCallback callback) {
         String fromRoomID = map.getString("fromRoomID");
         String toRoomID = map.getString("toRoomID");
@@ -623,6 +670,7 @@ public class ZegoExpressUniAppEngine extends UniModule {
         callbackNotNull(callback);
     }
 
+    @SuppressWarnings("unused")
     public void setRoomExtraInfo(JSONObject map, final JSCallback callback) {
         String value = map.getString("value");
         String key = map.getString("key");
@@ -636,6 +684,8 @@ public class ZegoExpressUniAppEngine extends UniModule {
         });
     }
 
+    /** Publish */
+    @SuppressWarnings("unused")
     public void startPublishingStream(JSONObject map, JSCallback callback) {
         String streamID = map.getString("streamID");
         int channel = map.getIntValue("channel");
@@ -643,12 +693,14 @@ public class ZegoExpressUniAppEngine extends UniModule {
         callbackNotNull(callback);
     }
 
+    @SuppressWarnings("unused")
     public void stopPublishingStream(JSONObject map, JSCallback callback) {
         int channel = map.getIntValue("channel");
         ZegoExpressEngine.getEngine().stopPublishingStream(ZegoPublishChannel.getZegoPublishChannel(channel));
         callbackNotNull(callback);
     }
 
+    @SuppressWarnings("unused")
     public void setStreamExtraInfo(JSONObject map, final JSCallback callback) {
         String extraInfo = map.getString("extraInfo");
         ZegoExpressEngine.getEngine().setStreamExtraInfo(extraInfo, new IZegoPublisherSetStreamExtraInfoCallback() {
@@ -659,6 +711,7 @@ public class ZegoExpressUniAppEngine extends UniModule {
         });
     }
 
+    @SuppressWarnings("unused")
     public void startPreview(JSONObject map, JSCallback callback) {
         Integer channel = map.getInteger("channel");
         ZegoCanvas canvas = previewViewMap.get(channel.toString());
@@ -666,12 +719,14 @@ public class ZegoExpressUniAppEngine extends UniModule {
         callbackNotNull(callback);
     }
 
+    @SuppressWarnings("unused")
     public void stopPreview(JSONObject map, JSCallback callback) {
         int channel = map.getIntValue("channel");
         ZegoExpressEngine.getEngine().stopPreview(ZegoPublishChannel.getZegoPublishChannel(channel));
         callbackNotNull(callback);
     }
 
+    @SuppressWarnings("unused")
     public void setVideoConfig(JSONObject map, JSCallback callback) {
         int channel = map.getIntValue("channel");
         ZegoVideoConfig configObj = new ZegoVideoConfig();
@@ -708,6 +763,7 @@ public class ZegoExpressUniAppEngine extends UniModule {
         callbackNotNull(callback);
     }
 
+    @SuppressWarnings("unused")
     public void getVideoConfig(JSONObject map, JSCallback callback) {
         int channel = map.getIntValue("channel");
         ZegoVideoConfig config = ZegoExpressEngine.getEngine().getVideoConfig(ZegoPublishChannel.getZegoPublishChannel(channel));
@@ -716,8 +772,8 @@ public class ZegoExpressUniAppEngine extends UniModule {
 
         o.put("captureWidth", config.captureWidth);
         o.put("captureHeight", config.captureHeight);
-        o.put("captureWidth", config.encodeWidth);
-        o.put("captureHeight", config.encodeHeight);
+        o.put("encodeWidth", config.encodeWidth);
+        o.put("encodeHeight", config.encodeHeight);
 
         o.put("bitrate", config.bitrate);
         o.put("fps", config.fps);
@@ -725,6 +781,7 @@ public class ZegoExpressUniAppEngine extends UniModule {
         callbackNotNull(callback, o);
     }
 
+    @SuppressWarnings("unused")
     public void setVideoMirrorMode(JSONObject map, JSCallback callback) {
         int mirrorMode = map.getIntValue("mode");
         int channel = map.getIntValue("channel");
@@ -733,6 +790,7 @@ public class ZegoExpressUniAppEngine extends UniModule {
         callbackNotNull(callback);
     }
 
+    @SuppressWarnings("unused")
     public void setAppOrientation(JSONObject map, JSCallback callback) {
         int orientation = map.getIntValue("orientation");
         int channel = map.getIntValue("channel");
@@ -740,6 +798,7 @@ public class ZegoExpressUniAppEngine extends UniModule {
         callbackNotNull(callback);
     }
 
+    @SuppressWarnings("unused")
     public void setAudioConfig(JSONObject map, JSCallback callback) {
         JSONObject config = map.getJSONObject("config");
         ZegoAudioConfig configObj = new ZegoAudioConfig();
@@ -751,6 +810,7 @@ public class ZegoExpressUniAppEngine extends UniModule {
         callbackNotNull(callback);
     }
 
+    @SuppressWarnings("unused")
     public void getAudioConfig(JSCallback callback) {
         ZegoAudioConfig config = ZegoExpressEngine.getEngine().getAudioConfig();
 
@@ -762,6 +822,7 @@ public class ZegoExpressUniAppEngine extends UniModule {
         callbackNotNull(callback, map);
     }
 
+    @SuppressWarnings("unused")
     public void setPublishStreamEncryptionKey(JSONObject map, JSCallback callback) {
         String key = map.getString("key");
         int channel = map.getIntValue("channel");
@@ -770,6 +831,7 @@ public class ZegoExpressUniAppEngine extends UniModule {
         callbackNotNull(callback);
     }
 
+    @SuppressWarnings("unused")
     public void takePublishStreamSnapshot(JSONObject map, final JSCallback callback) {
         int channel = map.getIntValue("channel");
         ZegoExpressEngine.getEngine().takePublishStreamSnapshot(new IZegoPublisherTakeSnapshotCallback() {
@@ -784,6 +846,7 @@ public class ZegoExpressUniAppEngine extends UniModule {
         }, ZegoPublishChannel.getZegoPublishChannel(channel));
     }
 
+    @SuppressWarnings("unused")
     public void mutePublishStreamAudio(JSONObject map, JSCallback callback) {
         boolean mute = map.getBoolean("mute");
         int channel = map.getIntValue("channel");
@@ -791,6 +854,7 @@ public class ZegoExpressUniAppEngine extends UniModule {
         callbackNotNull(callback);
     }
 
+    @SuppressWarnings("unused")
     public void mutePublishStreamVideo(JSONObject map, JSCallback callback) {
         boolean mute = map.getBoolean("mute");
         int channel = map.getIntValue("channel");
@@ -798,6 +862,7 @@ public class ZegoExpressUniAppEngine extends UniModule {
         callbackNotNull(callback);
     }
 
+    @SuppressWarnings("unused")
     public void enableTrafficControl(JSONObject map, JSCallback callback) {
         boolean enable = map.getBoolean("enable");
         int property = map.getIntValue("property");
@@ -805,6 +870,7 @@ public class ZegoExpressUniAppEngine extends UniModule {
         callbackNotNull(callback, map);
     }
 
+    @SuppressWarnings("unused")
     public void setMinVideoBitrateForTrafficControl(JSONObject map, JSCallback callback) {
         int bitrate = map.getIntValue("bitrate");
         int mode = map.getIntValue("mode");
@@ -818,6 +884,7 @@ public class ZegoExpressUniAppEngine extends UniModule {
         callbackNotNull(callback);
     }
 
+    @SuppressWarnings("unused")
     public void setTrafficControlFocusOn(JSONObject map, JSCallback callback) {
         int mode = map.getIntValue("mode");
         int channel = map.getIntValue("channel");
@@ -829,18 +896,21 @@ public class ZegoExpressUniAppEngine extends UniModule {
         callbackNotNull(callback);
     }
 
+    @SuppressWarnings("unused")
     public void setCaptureVolume(JSONObject map, JSCallback callback) {
         int volume = map.getIntValue("volume");
         ZegoExpressEngine.getEngine().setCaptureVolume(volume);
         callbackNotNull(callback);
     }
 
+    @SuppressWarnings("unused")
     public void setAudioCaptureStereoMode(JSONObject map, JSCallback callback) {
         int mode = map.getIntValue("mode");
         ZegoExpressEngine.getEngine().setAudioCaptureStereoMode(ZegoAudioCaptureStereoMode.getZegoAudioCaptureStereoMode(mode));
         callbackNotNull(callback);
     }
 
+    @SuppressWarnings("unused")
     public void addPublishCdnUrl(JSONObject map, final JSCallback callback) {
         String targetURL = map.getString("targetURL");
         String streamID = map.getString("streamID");
@@ -853,6 +923,7 @@ public class ZegoExpressUniAppEngine extends UniModule {
         });
     }
 
+    @SuppressWarnings("unused")
     public void removePublishCdnUrl(JSONObject map, final JSCallback callback) {
         String targetURL = map.getString("targetURL");
         String streamID = map.getString("streamID");
@@ -865,6 +936,7 @@ public class ZegoExpressUniAppEngine extends UniModule {
         });
     }
 
+    @SuppressWarnings("unused")
     public void enablePublishDirectToCDN(JSONObject map, JSCallback callback) {
         int channel = map.getIntValue("channel");
         boolean enable = map.getBoolean("enable");
@@ -880,6 +952,7 @@ public class ZegoExpressUniAppEngine extends UniModule {
         callbackNotNull(callback);
     }
 
+    @SuppressWarnings("unused")
     public void setPublishWatermark(JSONObject map, JSCallback callback) {
         int channel = map.getIntValue("channel");
         boolean isPreviewVisible = map.getBoolean("isPreviewVisible");
@@ -897,6 +970,7 @@ public class ZegoExpressUniAppEngine extends UniModule {
         callbackNotNull(callback);
     }
 
+    @SuppressWarnings("unused")
     public void setSEIConfig(JSONObject map, JSCallback callback) {
         JSONObject config = map.getJSONObject("config");
         ZegoSEIConfig seiConfig = new ZegoSEIConfig();
@@ -908,6 +982,7 @@ public class ZegoExpressUniAppEngine extends UniModule {
         callbackNotNull(callback);
     }
 
+    @SuppressWarnings("unused")
     public void sendSEI(JSONObject map, JSCallback callback) {
         int channel = map.getIntValue("channel");
         byte[] data = map.getBytes("data");
@@ -916,6 +991,7 @@ public class ZegoExpressUniAppEngine extends UniModule {
         callbackNotNull(callback);
     }
 
+    @SuppressWarnings("unused")
     public void setCapturePipelineScaleMode(JSONObject map, JSCallback callback) {
         int mode = map.getIntValue("mode");
 
@@ -923,12 +999,15 @@ public class ZegoExpressUniAppEngine extends UniModule {
         callbackNotNull(callback);
     }
 
+    @SuppressWarnings("unused")
     public void enableHardwareEncoder(JSONObject map, JSCallback callback) {
         boolean enable = map.getBoolean("enable");
         ZegoExpressEngine.getEngine().enableHardwareEncoder(enable);
         callbackNotNull(callback);
     }
 
+    /** Playing */
+    @SuppressWarnings("unused")
     public void startPlayingStream(JSONObject map, JSCallback callback) {
         String streamID = map.getString("streamID");
         JSONObject config = map.getJSONObject("config");
@@ -960,6 +1039,7 @@ public class ZegoExpressUniAppEngine extends UniModule {
         callbackNotNull(callback);
     }
 
+    @SuppressWarnings("unused")
     public void stopPlayingStream(JSONObject map, JSCallback callback) {
         String streamID = map.getString("streamID");
 
@@ -967,6 +1047,7 @@ public class ZegoExpressUniAppEngine extends UniModule {
         callbackNotNull(callback);
     }
 
+    @SuppressWarnings("unused")
     public void setPlayStreamDecryptionKey(JSONObject map, JSCallback callback) {
         String streamID = map.getString("streamID");
         String key = map.getString("key");
@@ -975,6 +1056,7 @@ public class ZegoExpressUniAppEngine extends UniModule {
         callbackNotNull(callback);
     }
 
+    @SuppressWarnings("unused")
     public void takePlayStreamSnapshot(JSONObject map, final JSCallback callback) {
         String streamID = map.getString("streamID");
 
@@ -989,6 +1071,7 @@ public class ZegoExpressUniAppEngine extends UniModule {
         });
     }
 
+    @SuppressWarnings("unused")
     public void setPlayVolume(JSONObject map, JSCallback callback) {
         String streamID = map.getString("streamID");
         int volume = map.getIntValue("volume");
@@ -996,6 +1079,7 @@ public class ZegoExpressUniAppEngine extends UniModule {
         callbackNotNull(callback);
     }
 
+    @SuppressWarnings("unused")
     public void setPlayStreamVideoType(JSONObject map, JSCallback callback) {
         String streamID = map.getString("streamID");
         int streamType = map.getIntValue("streamType");
@@ -1004,16 +1088,19 @@ public class ZegoExpressUniAppEngine extends UniModule {
         callbackNotNull(callback);
     }
 
+    @SuppressWarnings("unused")
     public void setAllPlayStreamVolume(JSONObject map, JSCallback callback) {
         int volume = map.getIntValue("volume");
         ZegoExpressEngine.getEngine().setAllPlayStreamVolume(volume);
         callbackNotNull(callback);
     }
 
+    @SuppressWarnings("unused")
     public void setPlayStreamBufferIntervalRange(JSONObject map, JSCallback callback) {
 
     }
 
+    @SuppressWarnings("unused")
     public void setPlayStreamFocusOn(JSONObject map, JSCallback callback) {
         String streamID = map.getString("streamID");
 
@@ -1021,6 +1108,7 @@ public class ZegoExpressUniAppEngine extends UniModule {
         callbackNotNull(callback);
     }
 
+    @SuppressWarnings("unused")
     public void mutePlayStreamAudio(JSONObject map, JSCallback callback) {
         boolean mute = map.getBoolean("mute");
         String streamID = map.getString("streamID");
@@ -1028,6 +1116,7 @@ public class ZegoExpressUniAppEngine extends UniModule {
         callbackNotNull(callback);
     }
 
+    @SuppressWarnings("unused")
     public void mutePlayStreamVideo(JSONObject map, JSCallback callback) {
         boolean mute = map.getBoolean("mute");
         String streamID = map.getString("streamID");
@@ -1035,628 +1124,36 @@ public class ZegoExpressUniAppEngine extends UniModule {
         callbackNotNull(callback);
     }
 
+    @SuppressWarnings("unused")
     public void muteAllPlayStreamAudio(JSONObject map, JSCallback callback) {
         boolean mute = map.getBoolean("mute");
         ZegoExpressEngine.getEngine().muteAllPlayStreamAudio(mute);
         callbackNotNull(callback);
     }
 
+    @SuppressWarnings("unused")
     public void muteAllPlayStreamVideo(JSONObject map, JSCallback callback) {
         boolean mute = map.getBoolean("mute");
         ZegoExpressEngine.getEngine().muteAllPlayStreamVideo(mute);
         callbackNotNull(callback);
     }
 
+    @SuppressWarnings("unused")
     public void enableHardwareDecoder(JSONObject map, JSCallback callback) {
         boolean enable = map.getBoolean("enable");
         ZegoExpressEngine.getEngine().enableHardwareDecoder(enable);
         callbackNotNull(callback);
     }
 
+    @SuppressWarnings("unused")
     public void enableCheckPoc(JSONObject map, JSCallback callback) {
         boolean enable = map.getBoolean("enable");
         ZegoExpressEngine.getEngine().enableCheckPoc(enable);
         callbackNotNull(callback);
     }
 
-
-    public void muteMicrophone(JSONObject map, JSCallback callback) {
-        boolean mute = map.getBoolean("mute");
-        ZegoExpressEngine.getEngine().muteMicrophone(mute);
-        callbackNotNull(callback);
-    }
-
-    public void isMicrophoneMuted(JSCallback callback) {
-        boolean mute = ZegoExpressEngine.getEngine().isMicrophoneMuted();
-        callbackNotNull(callback, mute);
-    }
-
-    public void  muteSpeaker(JSONObject map, JSCallback callback) {
-        boolean mute = map.getBoolean("mute");
-        ZegoExpressEngine.getEngine().muteSpeaker(mute);
-        callbackNotNull(callback);
-    }
-
-    public void isSpeakerMuted(JSCallback callback) {
-        boolean mute = ZegoExpressEngine.getEngine().isSpeakerMuted();
-        callbackNotNull(callback, mute);
-    }
-
-    public void enableAudioCaptureDevice(JSONObject map, JSCallback callback) {
-        boolean enable = map.getBoolean("enable");
-        ZegoExpressEngine.getEngine().enableAudioCaptureDevice(enable);
-        callbackNotNull(callback);
-    }
-
-    public void getAudioRouteType(JSCallback callback) {
-        ZegoAudioRoute route = ZegoExpressEngine.getEngine().getAudioRouteType();
-        callbackNotNull(callback, route.value());
-    }
-
-    public void setAudioRouteToSpeaker(JSONObject map, JSCallback callback) {
-        boolean defaultToSpeaker = map.getBoolean("defaultToSpeaker");
-        ZegoExpressEngine.getEngine().setAudioRouteToSpeaker(defaultToSpeaker);
-        callbackNotNull(callback);
-    }
-
-    public void enableCamera(JSONObject map, JSCallback callback) {
-        boolean enable = map.getBoolean("enable");
-        int channel = map.getIntValue("channel");
-        ZegoExpressEngine.getEngine().enableCamera(enable,ZegoPublishChannel.getZegoPublishChannel(channel));
-        callbackNotNull(callback);
-    }
-
-    public void useFrontCamera(JSONObject map, JSCallback callback) {
-        boolean enable = map.getBoolean("enable");
-        int channel = map.getIntValue("channel");
-        ZegoExpressEngine.getEngine().useFrontCamera(enable, ZegoPublishChannel.getZegoPublishChannel(channel));
-        callbackNotNull(callback);
-    }
-
-    public void setCameraZoomFactor(JSONObject map, JSCallback callback) {
-        float enable = map.getFloat("factor");
-        int channel = map.getIntValue("channel");
-        ZegoExpressEngine.getEngine().setCameraZoomFactor(enable, ZegoPublishChannel.getZegoPublishChannel(channel));
-        callbackNotNull(callback);
-    }
-
-    public void getCameraMaxZoomFactor(JSONObject map, JSCallback callback) {
-        int channel = map.getIntValue("channel");
-        float factor = ZegoExpressEngine.getEngine().getCameraMaxZoomFactor(ZegoPublishChannel.getZegoPublishChannel(channel));
-        callbackNotNull(callback, factor);
-    }
-
-    public void startSoundLevelMonitor(JSONObject map, JSCallback callback) {
-        int millisecond = map.getIntValue("millisecond");
-        ZegoExpressEngine.getEngine().startSoundLevelMonitor(millisecond);
-        callbackNotNull(callback);
-    }
-
-    public void stopSoundLevelMonitor(JSCallback callback) {
-        ZegoExpressEngine.getEngine().startSoundLevelMonitor();
-        callbackNotNull(callback);
-    }
-
-    public void startAudioSpectrumMonitor(JSONObject map, JSCallback callback) {
-        int millisecond = map.getIntValue("millisecond");
-        ZegoExpressEngine.getEngine().startAudioSpectrumMonitor(millisecond);
-        callbackNotNull(callback);
-    }
-
-    public void stopAudioSpectrumMonitor(JSCallback callback) {
-        ZegoExpressEngine.getEngine().stopAudioSpectrumMonitor();
-        callbackNotNull(callback);
-    }
-
-    public void enableHeadphoneMonitor(JSONObject map, JSCallback callback) {
-        boolean enable = map.getBoolean("enable");
-        ZegoExpressEngine.getEngine().enableHeadphoneMonitor(enable);
-        callbackNotNull(callback);
-    }
-
-    public void setHeadphoneMonitorVolume(JSONObject map, JSCallback callback) {
-        int volume = map.getIntValue("volume");
-        ZegoExpressEngine.getEngine().setHeadphoneMonitorVolume(volume);
-        callbackNotNull(callback);
-    }
-
-    public void createMediaPlayer(JSCallback callback) {
-        ZegoMediaPlayer player = ZegoExpressEngine.getEngine().createMediaPlayer();
-        player.setEventHandler(mediaPlayerEventHandler);
-//        player.setVideoHandler(mediaPlayerVideoHandler);
-//        player.setAudioHandler(mediaPlayerAudioHandler);
-
-        mediaPlayerDict.put(Integer.toString(player.getIndex()), player);
-        JSONObject obj = new JSONObject();
-        obj.put("playerID", player.getIndex());
-        callbackNotNull(callback, obj);
-    }
-
-    public void destroyMediaPlayer(JSONObject map, JSCallback callback) {
-        int playerID = map.getIntValue("playerID");
-        ZegoMediaPlayer player = mediaPlayerDict.get(Integer.toString(playerID));
-        ZegoExpressUniAppEngine.mediaPlayerViewMap.remove(Integer.toString(playerID));
-        if (player != null) {
-            ZegoExpressEngine.getEngine().destroyMediaPlayer(player);
-        }
-        callbackNotNull(callback);
-    }
-
-    public void mediaPlayerLoadResource(JSONObject map, final JSCallback callback) {
-        int playerID = map.getIntValue("playerID");
-        String path = map.getString("path");
-        ZegoMediaPlayer player = mediaPlayerDict.get(Integer.toString(playerID));
-        if (player != null) {
-            player.loadResource(path, new IZegoMediaPlayerLoadResourceCallback() {
-                @Override
-                public void onLoadResourceCallback(int i) {
-                    callbackNotNull(callback, i);
-                }
-            });
-        }
-    }
-
-    public void mediaPlayerSetPlayerView(JSONObject map, JSCallback callback) {
-        int playerID = map.getIntValue("playerID");
-        ZegoMediaPlayer player = mediaPlayerDict.get(Integer.toString(playerID));
-        ZegoCanvas canvas = ZegoExpressUniAppEngine.mediaPlayerViewMap.get(Integer.toString(playerID));
-        player.setPlayerCanvas(canvas);
-        callbackNotNull(callback);
-    }
-
-    public void mediaPlayerStart(JSONObject map, JSCallback callback) {
-        int playerID = map.getIntValue("playerID");
-        ZegoMediaPlayer player = mediaPlayerDict.get(Integer.toString(playerID));
-        if (player != null) {
-            player.start();
-        }
-        callbackNotNull(callback);
-    }
-
-    public void mediaPlayerStop(JSONObject map, JSCallback callback) {
-        int playerID = map.getIntValue("playerID");
-        ZegoMediaPlayer player = mediaPlayerDict.get(Integer.toString(playerID));
-        if (player != null) {
-            player.stop();
-        }
-        callbackNotNull(callback);
-    }
-
-    public void mediaPlayerPause(JSONObject map, JSCallback callback) {
-        int playerID = map.getIntValue("playerID");
-        ZegoMediaPlayer player = mediaPlayerDict.get(Integer.toString(playerID));
-        if (player != null) {
-            player.pause();
-        }
-        callbackNotNull(callback);
-    }
-
-    public void mediaPlayerResume(JSONObject map, JSCallback callback) {
-        int playerID = map.getIntValue("playerID");
-        ZegoMediaPlayer player = mediaPlayerDict.get(Integer.toString(playerID));
-        if (player != null) {
-            player.resume();
-        }
-        callbackNotNull(callback);
-    }
-
-    public void mediaPlayerSeekTo(JSONObject map, final JSCallback callback) {
-        int playerID = map.getIntValue("playerID");
-        ZegoMediaPlayer player = mediaPlayerDict.get(Integer.toString(playerID));
-        if (player != null) {
-            long millisecond = map.getLong("millisecond");
-            player.seekTo(millisecond, new IZegoMediaPlayerSeekToCallback() {
-                @Override
-                public void onSeekToTimeCallback(int i) {
-                    callbackNotNull(callback, i);
-                }
-            });
-        }
-    }
-
-    public void mediaPlayerEnableRepeat(JSONObject map, JSCallback callback) {
-        int playerID = map.getIntValue("playerID");
-        ZegoMediaPlayer player = mediaPlayerDict.get(Integer.toString(playerID));
-        if (player != null) {
-            boolean enable = map.getBoolean("enable");
-            player.enableRepeat(enable);
-        }
-        callbackNotNull(callback);
-    }
-
-    public void mediaPlayerEnableAux(JSONObject map, JSCallback callback) {
-        int playerID = map.getIntValue("playerID");
-        ZegoMediaPlayer player = mediaPlayerDict.get(Integer.toString(playerID));
-        if (player != null) {
-            boolean enable = map.getBoolean("enable");
-            player.enableAux(enable);
-        }
-        callbackNotNull(callback);
-    }
-
-    public void mediaPlayerMuteLocal(JSONObject map, JSCallback callback) {
-        int playerID = map.getIntValue("playerID");
-        ZegoMediaPlayer player = mediaPlayerDict.get(Integer.toString(playerID));
-        if (player != null) {
-            boolean mute = map.getBoolean("mute");
-            player.muteLocal(mute);
-        }
-        callbackNotNull(callback);
-    }
-
-    public void mediaPlayerSetVolume(JSONObject map, JSCallback callback) {
-        int playerID = map.getIntValue("playerID");
-        ZegoMediaPlayer player = mediaPlayerDict.get(Integer.toString(playerID));
-        if (player != null) {
-            int volume = map.getIntValue("volume");
-            player.setVolume(volume);
-        }
-        callbackNotNull(callback);
-    }
-
-    public void mediaPlayerSetPlayVolume(JSONObject map, JSCallback callback) {
-        int playerID = map.getIntValue("playerID");
-        ZegoMediaPlayer player = mediaPlayerDict.get(Integer.toString(playerID));
-        if (player != null) {
-            int volume = map.getIntValue("volume");
-            player.setPlayVolume(volume);
-        }
-        callbackNotNull(callback);
-    }
-
-    public void mediaPlayerSetPublishVolume(JSONObject map, JSCallback callback) {
-        int playerID = map.getIntValue("playerID");
-        ZegoMediaPlayer player = mediaPlayerDict.get(Integer.toString(playerID));
-        if (player != null) {
-            int volume = map.getIntValue("volume");
-            player.setPublishVolume(volume);
-        }
-        callbackNotNull(callback);
-    }
-
-    public void mediaPlayerSetProgressInterval(JSONObject map, JSCallback callback) {
-        int playerID = map.getIntValue("playerID");
-        ZegoMediaPlayer player = mediaPlayerDict.get(Integer.toString(playerID));
-        if (player != null) {
-            long millisecond = map.getLong("millisecond");
-            player.setProgressInterval(millisecond);
-        }
-        callbackNotNull(callback);
-    }
-
-    public void mediaPlayerSetAudioTrackIndex(JSONObject map, JSCallback callback) {
-        int playerID = map.getIntValue("playerID");
-        ZegoMediaPlayer player = mediaPlayerDict.get(Integer.toString(playerID));
-        if (player != null) {
-            int index = map.getIntValue("index");
-            player.setAudioTrackIndex(index);
-        }
-        callbackNotNull(callback);
-    }
-
-    public void mediaPlayerSetVoiceChangerParam(JSONObject map, JSCallback callback) {
-        int playerID = map.getIntValue("playerID");
-        ZegoMediaPlayer player = mediaPlayerDict.get(Integer.toString(playerID));
-        if (player != null) {
-            JSONObject param = map.getJSONObject("param");
-            int audioChannel = map.getIntValue("audioChannel");
-            ZegoVoiceChangerParam changerParam = new ZegoVoiceChangerParam();
-            if (param != null) {
-                changerParam.pitch = param.getFloat("pitch");
-            }
-            player.setVoiceChangerParam(ZegoMediaPlayerAudioChannel.getZegoMediaPlayerAudioChannel(audioChannel), changerParam);
-        }
-        callbackNotNull(callback);
-    }
-
-    public void mediaPlayerTakeSnapshot(JSONObject map, final JSCallback callback) {
-        int playerID = map.getIntValue("playerID");
-        ZegoMediaPlayer player = mediaPlayerDict.get(Integer.toString(playerID));
-        if (player != null) {
-            player.takeSnapshot(new IZegoMediaPlayerTakeSnapshotCallback() {
-                @Override
-                public void onPlayerTakeSnapshotResult(int i, android.graphics.Bitmap bitmap) {
-                    JSONObject params = new JSONObject();
-                    params.put("errorCode", i);
-                    params.put("imageBase64", bitmapToBase64(bitmap));
-                    callbackNotNull(callback, params);
-                }
-            });
-        }
-    }
-
-    public void mediaPlayerEnableAccurateSeek(JSONObject map, JSCallback callback) {
-        int playerID = map.getIntValue("playerID");
-        ZegoMediaPlayer player = mediaPlayerDict.get(Integer.toString(playerID));
-        if (player != null) {
-            boolean enable = map.getBoolean("enable");
-            JSONObject config = map.getJSONObject("config");
-            ZegoAccurateSeekConfig seekConfig = new ZegoAccurateSeekConfig();
-            if (config != null) {
-                seekConfig.timeout = config.getLong("timeout");
-            }
-            player.enableAccurateSeek(enable, seekConfig);
-        }
-        callbackNotNull(callback);
-    }
-
-    public void mediaPlayerSetNetWorkResourceMaxCache(JSONObject map, JSCallback callback) {
-        int playerID = map.getIntValue("playerID");
-        ZegoMediaPlayer player = mediaPlayerDict.get(Integer.toString(playerID));
-        if (player != null) {
-            int time = map.getIntValue("time");
-            int size = map.getIntValue("size");
-            player.setNetWorkResourceMaxCache(time, size);
-        }
-        callbackNotNull(callback);
-    }
-
-    public void mediaPlayerSetNetWorkBufferThreshold(JSONObject map, JSCallback callback) {
-        int playerID = map.getIntValue("playerID");
-        ZegoMediaPlayer player = mediaPlayerDict.get(Integer.toString(playerID));
-        if (player != null) {
-            int threshold = map.getIntValue("threshold");
-            player.setNetWorkBufferThreshold(threshold);
-        }
-        callbackNotNull(callback);
-    }
-
-    public void mediaPlayerGetTotalDuration(JSONObject map, JSCallback callback) {
-        int playerID = map.getIntValue("playerID");
-        ZegoMediaPlayer player = mediaPlayerDict.get(Integer.toString(playerID));
-        if (player != null) {
-            long totalDuration = player.getTotalDuration();
-            callbackNotNull(callback, totalDuration);
-        } else {
-            callbackNotNull(callback);
-        }
-    }
-
-    public void mediaPlayerGetCurrentProgress(JSONObject map, JSCallback callback) {
-        int playerID = map.getIntValue("playerID");
-        ZegoMediaPlayer player = mediaPlayerDict.get(Integer.toString(playerID));
-        if (player != null) {
-            long progress = player.getCurrentProgress();
-            callbackNotNull(callback, progress);
-        } else {
-            callbackNotNull(callback);
-        }
-    }
-
-    public void mediaPlayerGetPlayVolume(JSONObject map, JSCallback callback) {
-        int playerID = map.getIntValue("playerID");
-        ZegoMediaPlayer player = mediaPlayerDict.get(Integer.toString(playerID));
-        if (player != null) {
-            int volume = player.getPlayVolume();
-            callbackNotNull(callback, volume);
-        } else {
-            callbackNotNull(callback);
-        }
-    }
-
-    public void mediaPlayerGetPublishVolume(JSONObject map, JSCallback callback) {
-        int playerID = map.getIntValue("playerID");
-        ZegoMediaPlayer player = mediaPlayerDict.get(Integer.toString(playerID));
-        if (player != null) {
-            int volume = player.getPublishVolume();
-            callbackNotNull(callback, volume);
-        } else {
-            callbackNotNull(callback);
-        }
-    }
-
-    public void mediaPlayerGetAudioTrackCount(JSONObject map, JSCallback callback) {
-        int playerID = map.getIntValue("playerID");
-        ZegoMediaPlayer player = mediaPlayerDict.get(Integer.toString(playerID));
-        if (player != null) {
-            int audioTrackCount = player.getAudioTrackCount();
-            callbackNotNull(callback, audioTrackCount);
-        } else {
-            callbackNotNull(callback);
-        }
-    }
-
-    public void mediaPlayerGetCurrentState(JSONObject map, JSCallback callback) {
-        int playerID = map.getIntValue("playerID");
-        ZegoMediaPlayer player = mediaPlayerDict.get(Integer.toString(playerID));
-        if (player != null) {
-            ZegoMediaPlayerState state = player.getCurrentState();
-            callbackNotNull(callback, state);
-        } else {
-            callbackNotNull(callback);
-        }
-    }
-
-    public void mediaPlayerGetNetWorkResourceCache(JSONObject map, JSCallback callback) {
-        int playerID = map.getIntValue("playerID");
-        ZegoMediaPlayer player = mediaPlayerDict.get(Integer.toString(playerID));
-        if (player != null) {
-            ZegoNetWorkResourceCache resourceCache = player.getNetWorkResourceCache();
-            JSONObject params = new JSONObject();
-            params.put("time", resourceCache.time);
-            params.put("size", resourceCache.size);
-            callbackNotNull(callback, params);
-        } else {
-            callbackNotNull(callback);
-        }
-    }
-
-    public void createAudioEffectPlayer(JSCallback callback) {
-        ZegoAudioEffectPlayer player = ZegoExpressEngine.getEngine().createAudioEffectPlayer();
-        audioEffectPlayerDict.put(Integer.toString(player.getIndex()), player);
-        JSONObject obj = new JSONObject();
-        obj.put("playerID", player.getIndex());
-        callbackNotNull(callback, obj);
-    }
-
-    public void destroyAudioEffectPlayer(JSONObject map, JSCallback callback) {
-        int playerID = map.getIntValue("playerID");
-        ZegoAudioEffectPlayer player = audioEffectPlayerDict.get(Integer.toString(playerID));
-        if (player != null) {
-            ZegoExpressEngine.getEngine().destroyAudioEffectPlayer(player);
-        }
-        callbackNotNull(callback);
-    }
-
-    public void audioEffectPlayerStart(JSONObject map, JSCallback callback) {
-        int playerID = map.getIntValue("playerID");
-        ZegoAudioEffectPlayer player = audioEffectPlayerDict.get(Integer.toString(playerID));
-        if (player != null) {
-            int audioEffectID = map.getIntValue("audioEffectID");
-            String path = map.getString("path");
-            JSONObject config = map.getJSONObject("config");
-            ZegoAudioEffectPlayConfig audioEffectPlayConfig = new ZegoAudioEffectPlayConfig();
-            if (config != null) {
-                audioEffectPlayConfig.isPublishOut = config.getBoolean("isPublishOut");
-                audioEffectPlayConfig.playCount = config.getIntValue("playCount");
-            }
-            player.start(audioEffectID, path, audioEffectPlayConfig);
-        }
-        callbackNotNull(callback);
-    }
-
-    public void audioEffectPlayerStop(JSONObject map, JSCallback callback) {
-        int playerID = map.getIntValue("playerID");
-        ZegoAudioEffectPlayer player = audioEffectPlayerDict.get(Integer.toString(playerID));
-        if (player != null) {
-            int audioEffectID = map.getIntValue("audioEffectID");
-            player.stop(audioEffectID);
-        }
-        callbackNotNull(callback);
-    }
-
-    public void audioEffectPlayerPause(JSONObject map, JSCallback callback) {
-        int playerID = map.getIntValue("playerID");
-        ZegoAudioEffectPlayer player = audioEffectPlayerDict.get(Integer.toString(playerID));
-        if (player != null) {
-            int audioEffectID = map.getIntValue("audioEffectID");
-            player.pause(audioEffectID);
-        }
-        callbackNotNull(callback);
-    }
-
-    public void audioEffectPlayerResume(JSONObject map, JSCallback callback) {
-        int playerID = map.getIntValue("playerID");
-        ZegoAudioEffectPlayer player = audioEffectPlayerDict.get(Integer.toString(playerID));
-        if (player != null) {
-            int audioEffectID = map.getIntValue("audioEffectID");
-            player.resume(audioEffectID);
-        }
-        callbackNotNull(callback);
-    }
-
-    public void audioEffectPlayerStopAll(JSONObject map, JSCallback callback) {
-        int playerID = map.getIntValue("playerID");
-        ZegoAudioEffectPlayer player = audioEffectPlayerDict.get(Integer.toString(playerID));
-        if (player != null) {
-            player.stopAll();
-        }
-        callbackNotNull(callback);
-    }
-
-    public void audioEffectPlayerPauseAll(JSONObject map, JSCallback callback) {
-        int playerID = map.getIntValue("playerID");
-        ZegoAudioEffectPlayer player = audioEffectPlayerDict.get(Integer.toString(playerID));
-        if (player != null) {
-            player.pauseAll();
-        }
-        callbackNotNull(callback);
-    }
-
-    public void audioEffectPlayerResumeAll(JSONObject map, JSCallback callback) {
-        int playerID = map.getIntValue("playerID");
-        ZegoAudioEffectPlayer player = audioEffectPlayerDict.get(Integer.toString(playerID));
-        if (player != null) {
-            player.resumeAll();
-        }
-        callbackNotNull(callback);
-    }
-
-    public void audioEffectPlayerSeekTo(JSONObject map, final JSCallback callback) {
-        int playerID = map.getIntValue("playerID");
-        ZegoAudioEffectPlayer player = audioEffectPlayerDict.get(Integer.toString(playerID));
-        if (player != null) {
-            long millisecond = map.getLong("millisecond");
-            int audioEffectID = map.getIntValue("audioEffectID");
-            player.seekTo(audioEffectID, millisecond, new IZegoAudioEffectPlayerSeekToCallback() {
-                @Override
-                public void onSeekToCallback(int i) {
-                    callbackNotNull(callback, i);
-                }
-            });
-        }
-    }
-
-    public void audioEffectPlayerSetVolume(JSONObject map, JSCallback callback) {
-        int playerID = map.getIntValue("playerID");
-        ZegoAudioEffectPlayer player = audioEffectPlayerDict.get(Integer.toString(playerID));
-        if (player != null) {
-            int volume = map.getIntValue("volume");
-            int audioEffectID = map.getIntValue("audioEffectID");
-            player.setVolume(audioEffectID, volume);
-        }
-        callbackNotNull(callback);
-    }
-
-    public void audioEffectPlayerSetVolumeAll(JSONObject map, JSCallback callback) {
-        int playerID = map.getIntValue("playerID");
-        ZegoAudioEffectPlayer player = audioEffectPlayerDict.get(Integer.toString(playerID));
-        if (player != null) {
-            int volume = map.getIntValue("volume");
-            player.setVolumeAll(volume);
-        }
-        callbackNotNull(callback);
-    }
-
-    public void audioEffectPlayerGetTotalDuration(JSONObject map, JSCallback callback) {
-        int playerID = map.getIntValue("playerID");
-        ZegoAudioEffectPlayer player = audioEffectPlayerDict.get(Integer.toString(playerID));
-        if (player != null) {
-            int audioEffectID = map.getIntValue("audioEffectID");
-            long duration = player.getTotalDuration(audioEffectID);
-            callbackNotNull(callback, duration);
-        } else {
-            callbackNotNull(callback);
-        }
-    }
-
-    public void audioEffectPlayerGetCurrentProgress(JSONObject map, JSCallback callback) {
-        int playerID = map.getIntValue("playerID");
-        ZegoAudioEffectPlayer player = audioEffectPlayerDict.get(Integer.toString(playerID));
-        if (player != null) {
-            int audioEffectID = map.getIntValue("audioEffectID");
-            long progress = player.getCurrentProgress(audioEffectID);
-            callbackNotNull(callback, progress);
-        } else {
-            callbackNotNull(callback);
-        }
-    }
-
-    public void audioEffectPlayerLoadResource(JSONObject map, final JSCallback callback) {
-        int playerID = map.getIntValue("playerID");
-        ZegoAudioEffectPlayer player = audioEffectPlayerDict.get(Integer.toString(playerID));
-        if (player != null) {
-            int audioEffectID = map.getIntValue("audioEffectID");
-            String path = map.getString("path");
-            player.loadResource(audioEffectID, path, new IZegoAudioEffectPlayerLoadResourceCallback() {
-                @Override
-                public void onLoadResourceCallback(int i) {
-                    callbackNotNull(callback, i);
-                }
-            });
-        }
-    }
-
-    public void audioEffectPlayerUnloadResource(JSONObject map, JSCallback callback) {
-        int playerID = map.getIntValue("playerID");
-        ZegoAudioEffectPlayer player = audioEffectPlayerDict.get(Integer.toString(playerID));
-        if (player != null) {
-            int audioEffectID = map.getIntValue("audioEffectID");
-            player.unloadResource(audioEffectID);
-        }
-        callbackNotNull(callback);
-    }
-
+    /** Preprocess */
+    @SuppressWarnings("unused")
     public void enableAEC(JSONObject map, JSCallback callback) {
         boolean enable = map.getBoolean("enable");
 
@@ -1664,6 +1161,7 @@ public class ZegoExpressUniAppEngine extends UniModule {
         callbackNotNull(callback);
     }
 
+    @SuppressWarnings("unused")
     public void enableHeadphoneAEC(JSONObject map, JSCallback callback) {
         boolean enable = map.getBoolean("enable");
 
@@ -1671,6 +1169,7 @@ public class ZegoExpressUniAppEngine extends UniModule {
         callbackNotNull(callback);
     }
 
+    @SuppressWarnings("unused")
     public void setAECMode(JSONObject map, JSCallback callback) {
         int mode = map.getIntValue("mode");
 
@@ -1678,6 +1177,7 @@ public class ZegoExpressUniAppEngine extends UniModule {
         callbackNotNull(callback);
     }
 
+    @SuppressWarnings("unused")
     public void enableAGC(JSONObject map, JSCallback callback) {
         boolean enable = map.getBoolean("enable");
 
@@ -1685,6 +1185,7 @@ public class ZegoExpressUniAppEngine extends UniModule {
         callbackNotNull(callback);
     }
 
+    @SuppressWarnings("unused")
     public void enableANS(JSONObject map, JSCallback callback) {
         boolean enable = map.getBoolean("enable");
 
@@ -1692,6 +1193,7 @@ public class ZegoExpressUniAppEngine extends UniModule {
         callbackNotNull(callback);
     }
 
+    @SuppressWarnings("unused")
     public void enableTransientANS(JSONObject map, JSCallback callback) {
         boolean enable = map.getBoolean("enable");
 
@@ -1699,6 +1201,7 @@ public class ZegoExpressUniAppEngine extends UniModule {
         callbackNotNull(callback);
     }
 
+    @SuppressWarnings("unused")
     public void setANSMode(JSONObject map, JSCallback callback) {
         int mode = map.getIntValue("mode");
 
@@ -1706,6 +1209,7 @@ public class ZegoExpressUniAppEngine extends UniModule {
         callbackNotNull(callback);
     }
 
+    @SuppressWarnings("unused")
     public void enableBeautify(JSONObject map, JSCallback callback) {
         int feature = map.getIntValue("feature");
         int channel = map.getIntValue("channel");
@@ -1714,6 +1218,7 @@ public class ZegoExpressUniAppEngine extends UniModule {
         callbackNotNull(callback);
     }
 
+    @SuppressWarnings("unused")
     public void setBeautifyOption(JSONObject map, JSCallback callback) {
         JSONObject option = map.getJSONObject("option");
         int channel = map.getIntValue("channel");
@@ -1728,6 +1233,7 @@ public class ZegoExpressUniAppEngine extends UniModule {
         callbackNotNull(callback);
     }
 
+    @SuppressWarnings("unused")
     public void setAudioEqualizerGain(JSONObject map, JSCallback callback) {
         int bandIndex = map.getIntValue("bandIndex");
         float bandGain = map.getFloatValue("bandGain");
@@ -1736,6 +1242,7 @@ public class ZegoExpressUniAppEngine extends UniModule {
         callbackNotNull(callback);
     }
 
+    @SuppressWarnings("unused")
     public void setVoiceChangerPreset(JSONObject map, JSCallback callback) {
         int preset = map.getIntValue("preset");
 
@@ -1743,6 +1250,7 @@ public class ZegoExpressUniAppEngine extends UniModule {
         callbackNotNull(callback);
     }
 
+    @SuppressWarnings("unused")
     public void setVoiceChangerParam(JSONObject map, JSCallback callback) {
         JSONObject param = map.getJSONObject("param");
         ZegoVoiceChangerParam changerParam = new ZegoVoiceChangerParam();
@@ -1753,6 +1261,7 @@ public class ZegoExpressUniAppEngine extends UniModule {
         callbackNotNull(callback);
     }
 
+    @SuppressWarnings("unused")
     public void setReverbPreset(JSONObject map, JSCallback callback) {
         int preset = map.getIntValue("preset");
 
@@ -1760,6 +1269,7 @@ public class ZegoExpressUniAppEngine extends UniModule {
         callbackNotNull(callback);
     }
 
+    @SuppressWarnings("unused")
     public void setReverbAdvancedParam(JSONObject map, JSCallback callback) {
         JSONObject param = map.getJSONObject("param");
         ZegoReverbAdvancedParam advancedParam = new ZegoReverbAdvancedParam();
@@ -1779,6 +1289,7 @@ public class ZegoExpressUniAppEngine extends UniModule {
         callbackNotNull(callback);
     }
 
+    @SuppressWarnings("unused")
     public void setReverbEchoParam(JSONObject map, JSCallback callback) {
         JSONObject param = map.getJSONObject("param");
         ZegoReverbEchoParam echoParam = new ZegoReverbEchoParam();
@@ -1802,6 +1313,7 @@ public class ZegoExpressUniAppEngine extends UniModule {
         callbackNotNull(callback);
     }
 
+    @SuppressWarnings("unused")
     public void enableVirtualStereo(JSONObject map, JSCallback callback) {
         boolean enable = map.getBooleanValue("enable");
         int angle = map.getIntValue("angle");
@@ -1810,6 +1322,8 @@ public class ZegoExpressUniAppEngine extends UniModule {
         callbackNotNull(callback);
     }
 
+    /** IM */
+    @SuppressWarnings("unused")
     public void sendBroadcastMessage(JSONObject map, final JSCallback callback) {
         String roomID = map.getString("roomID");
         String message = map.getString("message");
@@ -1825,6 +1339,7 @@ public class ZegoExpressUniAppEngine extends UniModule {
         });
     }
 
+    @SuppressWarnings("unused")
     public void sendBarrageMessage(JSONObject map, final JSCallback callback) {
         String roomID = map.getString("roomID");
         String message = map.getString("message");
@@ -1840,11 +1355,12 @@ public class ZegoExpressUniAppEngine extends UniModule {
         });
     }
 
+    @SuppressWarnings("unused")
     public void sendCustomCommand(JSONObject map, final JSCallback callback) {
         String roomID = map.getString("roomID");
         String command = map.getString("command");
         JSONArray toUserList = map.getJSONArray("toUserList");
-        ArrayList<ZegoUser> userListArray = new ArrayList<ZegoUser>();
+        ArrayList<ZegoUser> userListArray = new ArrayList<>();
         for (Object userOBjMap : toUserList) {
             JSONObject userMap = (JSONObject) JSONObject.toJSON(userOBjMap);
             ZegoUser user = new ZegoUser(userMap.getString("userID"), userMap.getString("userName"));
@@ -1858,56 +1374,943 @@ public class ZegoExpressUniAppEngine extends UniModule {
         });
     }
 
-    @JSMethod (uiThread = false)
-    public void requestCameraAndAudioPermission() {
-        String[] PERMISSIONS_STORAGE = {
-                "android.permission.CAMERA",
-                "android.permission.RECORD_AUDIO"};
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (ContextCompat.checkSelfPermission(mWXSDKInstance.getContext(), "android.permission.CAMERA") != PackageManager.PERMISSION_GRANTED
-                    || ContextCompat.checkSelfPermission(mWXSDKInstance.getContext(), "android.permission.RECORD_AUDIO") != PackageManager.PERMISSION_GRANTED) {
-                Activity activity = (Activity)mWXSDKInstance.getContext();
-                activity.requestPermissions(PERMISSIONS_STORAGE, 101);
+    /** Mixer */
+    @SuppressWarnings("unused")
+    public void startMixerTask(JSONObject map, final JSCallback callback) {
+
+        JSONObject taskMap = map.getJSONObject("task");
+
+        String taskID = taskMap.getString("taskID");
+        ZegoMixerTask taskObject = new ZegoMixerTask(taskID);
+
+        // MixerInput
+        JSONArray inputListMap = taskMap.getJSONArray("inputList");
+        if (inputListMap != null && !inputListMap.isEmpty()) {
+            ArrayList<ZegoMixerInput> inputListObject= new ArrayList<>();
+            for (Object inputMapObject: inputListMap) {
+                JSONObject inputMap = (JSONObject) JSONObject.toJSON(inputMapObject);
+                String streamID = inputMap.getString("streamID");
+                int contentType = inputMap.getInteger("contentType");
+                JSONObject layout = inputMap.getJSONObject("layout");
+                android.graphics.Rect rect = new Rect(
+                        layout.getIntValue("x"),
+                        layout.getIntValue("y"),
+                        layout.getIntValue("width") + layout.getIntValue("x"),
+                        layout.getIntValue("height") + layout.getIntValue("y")
+                );
+                int soundLevelID = inputMap.getInteger("soundLevelID");
+                ZegoMixerInput inputObject = new ZegoMixerInput(streamID, ZegoMixerInputContentType.getZegoMixerInputContentType(contentType), rect, soundLevelID);
+                inputListObject.add(inputObject);
+            }
+            taskObject.setInputList(inputListObject);
+        }
+
+        // MixerOutput
+        JSONArray outputListMap = taskMap.getJSONArray("outputList");
+        if (outputListMap != null && !outputListMap.isEmpty()) {
+            ArrayList<ZegoMixerOutput> outputListObject = new ArrayList<>();
+            for (Object outputMapObject : outputListMap) {
+                JSONObject outputMap = (JSONObject) JSONObject.toJSON(outputMapObject);
+                String target = outputMap.getString("target");
+                ZegoMixerOutput outputObject = new ZegoMixerOutput(target);
+                outputListObject.add(outputObject);
+            }
+            taskObject.setOutputList(outputListObject);
+        }
+
+        // AudioConfig
+        JSONObject audioConfigMap = taskMap.getJSONObject("audioConfig");
+        if (audioConfigMap != null && !audioConfigMap.isEmpty()) {
+            int bitrate = audioConfigMap.getInteger("bitrate");
+            int channel = audioConfigMap.getInteger("channel");
+            int codecID = audioConfigMap.getInteger("codecID");
+            ZegoMixerAudioConfig audioConfigObject = new ZegoMixerAudioConfig();
+            audioConfigObject.bitrate = bitrate;
+            audioConfigObject.channel = ZegoAudioChannel.getZegoAudioChannel(channel);
+            audioConfigObject.codecID = ZegoAudioCodecID.getZegoAudioCodecID(codecID);
+
+            taskObject.setAudioConfig(audioConfigObject);
+        }
+
+        // VideoConfig
+        JSONObject videoConfigMap = taskMap.getJSONObject("videoConfig");
+        if (videoConfigMap != null && !videoConfigMap.isEmpty()) {
+            int width = videoConfigMap.getInteger("width");
+            int height = videoConfigMap.getInteger("height");
+            int fps = videoConfigMap.getInteger("fps");
+            int bitrate = videoConfigMap.getInteger("bitrate");
+            ZegoMixerVideoConfig videoConfigObject = new ZegoMixerVideoConfig(width, height, fps, bitrate);
+
+            taskObject.setVideoConfig(videoConfigObject);
+        }
+
+        // Watermark
+        JSONObject watermarkMap = taskMap.getJSONObject("watermark");
+        if (watermarkMap != null && !watermarkMap.isEmpty()) {
+            String imageURL = watermarkMap.getString("imageURL");
+            if (imageURL != null && imageURL.length() > 0) {
+                JSONObject layout = watermarkMap.getJSONObject("layout");
+                android.graphics.Rect rect = new Rect(
+                        layout.getIntValue("x"),
+                        layout.getIntValue("y"),
+                        layout.getIntValue("width") + layout.getIntValue("x"),
+                        layout.getIntValue("height") + layout.getIntValue("y")
+                );
+                ZegoWatermark watermarkObject = new ZegoWatermark(imageURL, rect);
+
+                taskObject.setWatermark(watermarkObject);
             }
         }
-    }
 
-    @JSMethod (uiThread = false)
-    public boolean getCameraAndAudioPermissionResult() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (ContextCompat.checkSelfPermission(mWXSDKInstance.getContext(), "android.permission.CAMERA") != PackageManager.PERMISSION_GRANTED
-                    || ContextCompat.checkSelfPermission(mWXSDKInstance.getContext(), "android.permission.RECORD_AUDIO") != PackageManager.PERMISSION_GRANTED) {
-                return false;
-            } else {
-                return true;
-            }
-        } else {
-            return true;
+        // Background Image
+        String backgroundImageURL = taskMap.getString("backgroundImageURL");
+        if (backgroundImageURL != null && backgroundImageURL.length() > 0) {
+            taskObject.setBackgroundImageURL(backgroundImageURL);
         }
+
+        // Enable SoundLevel
+        boolean enableSoundLevel = taskMap.getBoolean("enableSoundLevel");
+        taskObject.enableSoundLevel(enableSoundLevel);
+
+        // Set AdvancedConfig
+        HashMap<String, String> advancedConfig = taskMap.getObject("advancedConfig", HashMap.class);
+        taskObject.setAdvancedConfig(advancedConfig);
+
+        ZegoExpressEngine.getEngine().startMixerTask(taskObject, new IZegoMixerStartCallback() {
+            @Override
+            public void onMixerStartResult(int errorCode, org.json.JSONObject extendedData) {
+                HashMap<String, Object> resultMap = new HashMap<>();
+                resultMap.put("errorCode", errorCode);
+                resultMap.put("extendedData", extendedData.toString());
+                callbackNotNull(callback, resultMap);
+            }
+        });
     }
 
-    private final int REQUEST_CODE_ADDRESS = 100;
+    @SuppressWarnings("unused")
+    public void stopMixerTask(JSONObject map, final JSCallback callback) {
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        switch (requestCode) {
-            case REQUEST_CODE_ADDRESS:
-                if (grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] ==PackageManager.PERMISSION_GRANTED) {
-                    // Permission Granted 授予权限
-                    //处理授权之后逻辑
+        JSONObject taskMap = map.getJSONObject("task");
 
-                } else {
-                    // Permission Denied 权限被拒绝
+        String taskID = taskMap.getString("taskID");
+        ZegoMixerTask taskObject = new ZegoMixerTask(taskID);
+
+        // MixerInput
+        JSONArray inputListMap = taskMap.getJSONArray("inputList");
+        if (inputListMap != null && !inputListMap.isEmpty()) {
+            ArrayList<ZegoMixerInput> inputListObject= new ArrayList<>();
+            for (Object inputMapObject: inputListMap) {
+                JSONObject inputMap = (JSONObject) JSONObject.toJSON(inputMapObject);
+                String streamID = inputMap.getString("streamID");
+                int contentType = inputMap.getInteger("contentType");
+                JSONObject layout = inputMap.getJSONObject("layout");
+                android.graphics.Rect rect = new Rect(
+                        layout.getIntValue("x"),
+                        layout.getIntValue("y"),
+                        layout.getIntValue("width") + layout.getIntValue("x"),
+                        layout.getIntValue("height") + layout.getIntValue("y")
+                );
+                int soundLevelID = inputMap.getInteger("soundLevelID");
+                ZegoMixerInput inputObject = new ZegoMixerInput(streamID, ZegoMixerInputContentType.getZegoMixerInputContentType(contentType), rect, soundLevelID);
+                inputListObject.add(inputObject);
+            }
+            taskObject.setInputList(inputListObject);
+        }
+
+        // MixerOutput
+        JSONArray outputListMap = taskMap.getJSONArray("outputList");
+        if (outputListMap != null && !outputListMap.isEmpty()) {
+            ArrayList<ZegoMixerOutput> outputListObject = new ArrayList<>();
+            for (Object outputMapObject : outputListMap) {
+                JSONObject outputMap = (JSONObject) JSONObject.toJSON(outputMapObject);
+                String target = outputMap.getString("target");
+                ZegoMixerOutput outputObject = new ZegoMixerOutput(target);
+                outputListObject.add(outputObject);
+            }
+            taskObject.setOutputList(outputListObject);
+        }
+
+        // no need to set audio config
+
+        // no need to set video config
+
+        // no need to set watermark
+
+        // no need to set background image
+
+        // no need to set enable sound level
+
+        ZegoExpressEngine.getEngine().stopMixerTask(taskObject, new IZegoMixerStopCallback() {
+            @Override
+            public void onMixerStopResult(int errorCode) {
+                HashMap<String, Object> resultMap = new HashMap<>();
+                resultMap.put("errorCode", errorCode);
+                callbackNotNull(callback, resultMap);
+            }
+        });
+    }
+
+    @SuppressWarnings("unused")
+    public void startAutoMixerTask(JSONObject map, final JSCallback callback) {
+
+        JSONObject taskMap = map.getJSONObject("task");
+
+        String taskID = taskMap.getString("taskID");
+        String roomID = taskMap.getString("roomID");
+        ZegoAutoMixerTask taskObject = new ZegoAutoMixerTask();
+        taskObject.taskID = taskID;
+        taskObject.roomID = roomID;
+
+        // MixerOutput
+        JSONArray outputListMap = taskMap.getJSONArray("outputList");
+        if (outputListMap != null && !outputListMap.isEmpty()) {
+            ArrayList<ZegoMixerOutput> outputListObject = new ArrayList<>();
+            for (Object outputMapObject : outputListMap) {
+                JSONObject outputMap = (JSONObject) JSONObject.toJSON(outputMapObject);
+                String target = outputMap.getString("target");
+                ZegoMixerOutput outputObject = new ZegoMixerOutput(target);
+                outputListObject.add(outputObject);
+            }
+            taskObject.outputList = outputListObject;
+        }
+
+        // AudioConfig
+        JSONObject audioConfigMap = taskMap.getJSONObject("audioConfig");
+        if (audioConfigMap != null && !audioConfigMap.isEmpty()) {
+            int bitrate = audioConfigMap.getInteger("bitrate");
+            int channel = audioConfigMap.getInteger("channel");
+            int codecID = audioConfigMap.getInteger("codecID");
+            ZegoMixerAudioConfig audioConfigObject = new ZegoMixerAudioConfig();
+            audioConfigObject.bitrate = bitrate;
+            audioConfigObject.channel = ZegoAudioChannel.getZegoAudioChannel(channel);
+            audioConfigObject.codecID = ZegoAudioCodecID.getZegoAudioCodecID(codecID);
+
+            taskObject.audioConfig = audioConfigObject;
+        }
+
+        // Enable SoundLevel
+        taskObject.enableSoundLevel = taskMap.getBoolean("enableSoundLevel");
+
+        ZegoExpressEngine.getEngine().startAutoMixerTask(taskObject, new IZegoMixerStartCallback() {
+            @Override
+            public void onMixerStartResult(int errorCode, org.json.JSONObject extendedData) {
+                HashMap<String, Object> resultMap = new HashMap<>();
+                resultMap.put("errorCode", errorCode);
+                resultMap.put("extendedData", extendedData.toString());
+                callbackNotNull(callback, resultMap);
+            }
+        });
+    }
+
+    @SuppressWarnings("unused")
+    public void stopAutoMixerTask(JSONObject map, final JSCallback callback) {
+
+        JSONObject taskMap = map.getJSONObject("task");
+
+        String taskID = taskMap.getString("taskID");
+        String roomID = taskMap.getString("roomID");
+        ZegoAutoMixerTask taskObject = new ZegoAutoMixerTask();
+        taskObject.taskID = taskID;
+        taskObject.roomID = roomID;
+
+        // MixerOutput
+        JSONArray outputListMap = taskMap.getJSONArray("outputList");
+        if (outputListMap != null && !outputListMap.isEmpty()) {
+            ArrayList<ZegoMixerOutput> outputListObject = new ArrayList<>();
+            for (Object outputMapObject : outputListMap) {
+                JSONObject outputMap = (JSONObject) JSONObject.toJSON(outputMapObject);
+                String target = outputMap.getString("target");
+                ZegoMixerOutput outputObject = new ZegoMixerOutput(target);
+                outputListObject.add(outputObject);
+            }
+            taskObject.outputList = outputListObject;
+        }
+
+        // no need to set audio config
+
+        // no need to set video config
+
+        // no need to set watermark
+
+        // no need to set background image
+
+        // no need to set enable sound level
+
+        ZegoExpressEngine.getEngine().stopAutoMixerTask(taskObject, new IZegoMixerStopCallback() {
+            @Override
+            public void onMixerStopResult(int errorCode) {
+                HashMap<String, Object> resultMap = new HashMap<>();
+                resultMap.put("errorCode", errorCode);
+                callbackNotNull(callback, resultMap);
+            }
+        });
+    }
+
+    /** Device */
+    @SuppressWarnings("unused")
+    public void muteMicrophone(JSONObject map, JSCallback callback) {
+        boolean mute = map.getBoolean("mute");
+        ZegoExpressEngine.getEngine().muteMicrophone(mute);
+        callbackNotNull(callback);
+    }
+
+    @SuppressWarnings("unused")
+    public void isMicrophoneMuted(JSCallback callback) {
+        boolean mute = ZegoExpressEngine.getEngine().isMicrophoneMuted();
+        callbackNotNull(callback, mute);
+    }
+
+    @SuppressWarnings("unused")
+    public void  muteSpeaker(JSONObject map, JSCallback callback) {
+        boolean mute = map.getBoolean("mute");
+        ZegoExpressEngine.getEngine().muteSpeaker(mute);
+        callbackNotNull(callback);
+    }
+
+    @SuppressWarnings("unused")
+    public void isSpeakerMuted(JSCallback callback) {
+        boolean mute = ZegoExpressEngine.getEngine().isSpeakerMuted();
+        callbackNotNull(callback, mute);
+    }
+
+    @SuppressWarnings("unused")
+    public void enableAudioCaptureDevice(JSONObject map, JSCallback callback) {
+        boolean enable = map.getBoolean("enable");
+        ZegoExpressEngine.getEngine().enableAudioCaptureDevice(enable);
+        callbackNotNull(callback);
+    }
+
+    @SuppressWarnings("unused")
+    public void getAudioRouteType(JSCallback callback) {
+        ZegoAudioRoute route = ZegoExpressEngine.getEngine().getAudioRouteType();
+        callbackNotNull(callback, route.value());
+    }
+
+    @SuppressWarnings("unused")
+    public void setAudioRouteToSpeaker(JSONObject map, JSCallback callback) {
+        boolean defaultToSpeaker = map.getBoolean("defaultToSpeaker");
+        ZegoExpressEngine.getEngine().setAudioRouteToSpeaker(defaultToSpeaker);
+        callbackNotNull(callback);
+    }
+
+    @SuppressWarnings("unused")
+    public void enableCamera(JSONObject map, JSCallback callback) {
+        boolean enable = map.getBoolean("enable");
+        int channel = map.getIntValue("channel");
+        ZegoExpressEngine.getEngine().enableCamera(enable,ZegoPublishChannel.getZegoPublishChannel(channel));
+        callbackNotNull(callback);
+    }
+
+    @SuppressWarnings("unused")
+    public void useFrontCamera(JSONObject map, JSCallback callback) {
+        boolean enable = map.getBoolean("enable");
+        int channel = map.getIntValue("channel");
+        ZegoExpressEngine.getEngine().useFrontCamera(enable, ZegoPublishChannel.getZegoPublishChannel(channel));
+        callbackNotNull(callback);
+    }
+
+    @SuppressWarnings("unused")
+    public void setCameraZoomFactor(JSONObject map, JSCallback callback) {
+        float enable = map.getFloat("factor");
+        int channel = map.getIntValue("channel");
+        ZegoExpressEngine.getEngine().setCameraZoomFactor(enable, ZegoPublishChannel.getZegoPublishChannel(channel));
+        callbackNotNull(callback);
+    }
+
+    @SuppressWarnings("unused")
+    public void getCameraMaxZoomFactor(JSONObject map, JSCallback callback) {
+        int channel = map.getIntValue("channel");
+        float factor = ZegoExpressEngine.getEngine().getCameraMaxZoomFactor(ZegoPublishChannel.getZegoPublishChannel(channel));
+        callbackNotNull(callback, factor);
+    }
+
+    @SuppressWarnings("unused")
+    public void startSoundLevelMonitor(JSONObject map, JSCallback callback) {
+        int millisecond = map.getIntValue("millisecond");
+        ZegoExpressEngine.getEngine().startSoundLevelMonitor(millisecond);
+        callbackNotNull(callback);
+    }
+
+    @SuppressWarnings("unused")
+    public void stopSoundLevelMonitor(JSCallback callback) {
+        ZegoExpressEngine.getEngine().startSoundLevelMonitor();
+        callbackNotNull(callback);
+    }
+
+    @SuppressWarnings("unused")
+    public void startAudioSpectrumMonitor(JSONObject map, JSCallback callback) {
+        int millisecond = map.getIntValue("millisecond");
+        ZegoExpressEngine.getEngine().startAudioSpectrumMonitor(millisecond);
+        callbackNotNull(callback);
+    }
+
+    @SuppressWarnings("unused")
+    public void stopAudioSpectrumMonitor(JSCallback callback) {
+        ZegoExpressEngine.getEngine().stopAudioSpectrumMonitor();
+        callbackNotNull(callback);
+    }
+
+    @SuppressWarnings("unused")
+    public void enableHeadphoneMonitor(JSONObject map, JSCallback callback) {
+        boolean enable = map.getBoolean("enable");
+        ZegoExpressEngine.getEngine().enableHeadphoneMonitor(enable);
+        callbackNotNull(callback);
+    }
+
+    @SuppressWarnings("unused")
+    public void setHeadphoneMonitorVolume(JSONObject map, JSCallback callback) {
+        int volume = map.getIntValue("volume");
+        ZegoExpressEngine.getEngine().setHeadphoneMonitorVolume(volume);
+        callbackNotNull(callback);
+    }
+
+    /** Media player */
+    @SuppressWarnings("unused")
+    public void createMediaPlayer(JSCallback callback) {
+        ZegoMediaPlayer player = ZegoExpressEngine.getEngine().createMediaPlayer();
+        player.setEventHandler(mediaPlayerEventHandler);
+//        player.setVideoHandler(mediaPlayerVideoHandler);
+//        player.setAudioHandler(mediaPlayerAudioHandler);
+
+        mediaPlayerDict.put(Integer.toString(player.getIndex()), player);
+        JSONObject obj = new JSONObject();
+        obj.put("playerID", player.getIndex());
+        callbackNotNull(callback, obj);
+    }
+
+    @SuppressWarnings("unused")
+    public void destroyMediaPlayer(JSONObject map, JSCallback callback) {
+        int playerID = map.getIntValue("playerID");
+        ZegoMediaPlayer player = mediaPlayerDict.get(Integer.toString(playerID));
+        ZegoExpressUniAppEngine.mediaPlayerViewMap.remove(Integer.toString(playerID));
+        if (player != null) {
+            ZegoExpressEngine.getEngine().destroyMediaPlayer(player);
+        }
+        callbackNotNull(callback);
+    }
+
+    @SuppressWarnings("unused")
+    public void mediaPlayerLoadResource(JSONObject map, final JSCallback callback) {
+        int playerID = map.getIntValue("playerID");
+        String path = map.getString("path");
+        ZegoMediaPlayer player = mediaPlayerDict.get(Integer.toString(playerID));
+        if (player != null) {
+            player.loadResource(path, new IZegoMediaPlayerLoadResourceCallback() {
+                @Override
+                public void onLoadResourceCallback(int i) {
+                    callbackNotNull(callback, i);
                 }
-
-                break;
-            default:
-                break;
+            });
         }
     }
 
-    private IZegoMediaPlayerEventHandler mediaPlayerEventHandler = new IZegoMediaPlayerEventHandler() {
+    @SuppressWarnings("unused")
+    public void mediaPlayerSetPlayerView(JSONObject map, JSCallback callback) {
+        int playerID = map.getIntValue("playerID");
+        ZegoMediaPlayer player = mediaPlayerDict.get(Integer.toString(playerID));
+        ZegoCanvas canvas = ZegoExpressUniAppEngine.mediaPlayerViewMap.get(Integer.toString(playerID));
+        if (player != null) {
+            player.setPlayerCanvas(canvas);
+        }
+        callbackNotNull(callback);
+    }
+
+    @SuppressWarnings("unused")
+    public void mediaPlayerStart(JSONObject map, JSCallback callback) {
+        int playerID = map.getIntValue("playerID");
+        ZegoMediaPlayer player = mediaPlayerDict.get(Integer.toString(playerID));
+        if (player != null) {
+            player.start();
+        }
+        callbackNotNull(callback);
+    }
+
+    @SuppressWarnings("unused")
+    public void mediaPlayerStop(JSONObject map, JSCallback callback) {
+        int playerID = map.getIntValue("playerID");
+        ZegoMediaPlayer player = mediaPlayerDict.get(Integer.toString(playerID));
+        if (player != null) {
+            player.stop();
+        }
+        callbackNotNull(callback);
+    }
+
+    @SuppressWarnings("unused")
+    public void mediaPlayerPause(JSONObject map, JSCallback callback) {
+        int playerID = map.getIntValue("playerID");
+        ZegoMediaPlayer player = mediaPlayerDict.get(Integer.toString(playerID));
+        if (player != null) {
+            player.pause();
+        }
+        callbackNotNull(callback);
+    }
+
+    @SuppressWarnings("unused")
+    public void mediaPlayerResume(JSONObject map, JSCallback callback) {
+        int playerID = map.getIntValue("playerID");
+        ZegoMediaPlayer player = mediaPlayerDict.get(Integer.toString(playerID));
+        if (player != null) {
+            player.resume();
+        }
+        callbackNotNull(callback);
+    }
+
+    @SuppressWarnings("unused")
+    public void mediaPlayerSeekTo(JSONObject map, final JSCallback callback) {
+        int playerID = map.getIntValue("playerID");
+        ZegoMediaPlayer player = mediaPlayerDict.get(Integer.toString(playerID));
+        if (player != null) {
+            long millisecond = map.getLong("millisecond");
+            player.seekTo(millisecond, new IZegoMediaPlayerSeekToCallback() {
+                @Override
+                public void onSeekToTimeCallback(int i) {
+                    callbackNotNull(callback, i);
+                }
+            });
+        }
+    }
+
+    @SuppressWarnings("unused")
+    public void mediaPlayerEnableRepeat(JSONObject map, JSCallback callback) {
+        int playerID = map.getIntValue("playerID");
+        ZegoMediaPlayer player = mediaPlayerDict.get(Integer.toString(playerID));
+        if (player != null) {
+            boolean enable = map.getBoolean("enable");
+            player.enableRepeat(enable);
+        }
+        callbackNotNull(callback);
+    }
+
+    @SuppressWarnings("unused")
+    public void mediaPlayerEnableAux(JSONObject map, JSCallback callback) {
+        int playerID = map.getIntValue("playerID");
+        ZegoMediaPlayer player = mediaPlayerDict.get(Integer.toString(playerID));
+        if (player != null) {
+            boolean enable = map.getBoolean("enable");
+            player.enableAux(enable);
+        }
+        callbackNotNull(callback);
+    }
+
+    @SuppressWarnings("unused")
+    public void mediaPlayerMuteLocal(JSONObject map, JSCallback callback) {
+        int playerID = map.getIntValue("playerID");
+        ZegoMediaPlayer player = mediaPlayerDict.get(Integer.toString(playerID));
+        if (player != null) {
+            boolean mute = map.getBoolean("mute");
+            player.muteLocal(mute);
+        }
+        callbackNotNull(callback);
+    }
+
+    @SuppressWarnings("unused")
+    public void mediaPlayerSetVolume(JSONObject map, JSCallback callback) {
+        int playerID = map.getIntValue("playerID");
+        ZegoMediaPlayer player = mediaPlayerDict.get(Integer.toString(playerID));
+        if (player != null) {
+            int volume = map.getIntValue("volume");
+            player.setVolume(volume);
+        }
+        callbackNotNull(callback);
+    }
+
+    @SuppressWarnings("unused")
+    public void mediaPlayerSetPlayVolume(JSONObject map, JSCallback callback) {
+        int playerID = map.getIntValue("playerID");
+        ZegoMediaPlayer player = mediaPlayerDict.get(Integer.toString(playerID));
+        if (player != null) {
+            int volume = map.getIntValue("volume");
+            player.setPlayVolume(volume);
+        }
+        callbackNotNull(callback);
+    }
+
+    @SuppressWarnings("unused")
+    public void mediaPlayerSetPublishVolume(JSONObject map, JSCallback callback) {
+        int playerID = map.getIntValue("playerID");
+        ZegoMediaPlayer player = mediaPlayerDict.get(Integer.toString(playerID));
+        if (player != null) {
+            int volume = map.getIntValue("volume");
+            player.setPublishVolume(volume);
+        }
+        callbackNotNull(callback);
+    }
+
+    @SuppressWarnings("unused")
+    public void mediaPlayerSetProgressInterval(JSONObject map, JSCallback callback) {
+        int playerID = map.getIntValue("playerID");
+        ZegoMediaPlayer player = mediaPlayerDict.get(Integer.toString(playerID));
+        if (player != null) {
+            long millisecond = map.getLong("millisecond");
+            player.setProgressInterval(millisecond);
+        }
+        callbackNotNull(callback);
+    }
+
+    @SuppressWarnings("unused")
+    public void mediaPlayerSetAudioTrackIndex(JSONObject map, JSCallback callback) {
+        int playerID = map.getIntValue("playerID");
+        ZegoMediaPlayer player = mediaPlayerDict.get(Integer.toString(playerID));
+        if (player != null) {
+            int index = map.getIntValue("index");
+            player.setAudioTrackIndex(index);
+        }
+        callbackNotNull(callback);
+    }
+
+    @SuppressWarnings("unused")
+    public void mediaPlayerSetVoiceChangerParam(JSONObject map, JSCallback callback) {
+        int playerID = map.getIntValue("playerID");
+        ZegoMediaPlayer player = mediaPlayerDict.get(Integer.toString(playerID));
+        if (player != null) {
+            JSONObject param = map.getJSONObject("param");
+            int audioChannel = map.getIntValue("audioChannel");
+            ZegoVoiceChangerParam changerParam = new ZegoVoiceChangerParam();
+            if (param != null) {
+                changerParam.pitch = param.getFloat("pitch");
+            }
+            player.setVoiceChangerParam(ZegoMediaPlayerAudioChannel.getZegoMediaPlayerAudioChannel(audioChannel), changerParam);
+        }
+        callbackNotNull(callback);
+    }
+
+    @SuppressWarnings("unused")
+    public void mediaPlayerTakeSnapshot(JSONObject map, final JSCallback callback) {
+        int playerID = map.getIntValue("playerID");
+        ZegoMediaPlayer player = mediaPlayerDict.get(Integer.toString(playerID));
+        if (player != null) {
+            player.takeSnapshot(new IZegoMediaPlayerTakeSnapshotCallback() {
+                @Override
+                public void onPlayerTakeSnapshotResult(int i, android.graphics.Bitmap bitmap) {
+                    JSONObject params = new JSONObject();
+                    params.put("errorCode", i);
+                    params.put("imageBase64", bitmapToBase64(bitmap));
+                    callbackNotNull(callback, params);
+                }
+            });
+        }
+    }
+
+    @SuppressWarnings("unused")
+    public void mediaPlayerEnableAccurateSeek(JSONObject map, JSCallback callback) {
+        int playerID = map.getIntValue("playerID");
+        ZegoMediaPlayer player = mediaPlayerDict.get(Integer.toString(playerID));
+        if (player != null) {
+            boolean enable = map.getBoolean("enable");
+            JSONObject config = map.getJSONObject("config");
+            ZegoAccurateSeekConfig seekConfig = new ZegoAccurateSeekConfig();
+            if (config != null) {
+                seekConfig.timeout = config.getLong("timeout");
+            }
+            player.enableAccurateSeek(enable, seekConfig);
+        }
+        callbackNotNull(callback);
+    }
+
+    @SuppressWarnings("unused")
+    public void mediaPlayerSetNetWorkResourceMaxCache(JSONObject map, JSCallback callback) {
+        int playerID = map.getIntValue("playerID");
+        ZegoMediaPlayer player = mediaPlayerDict.get(Integer.toString(playerID));
+        if (player != null) {
+            int time = map.getIntValue("time");
+            int size = map.getIntValue("size");
+            player.setNetWorkResourceMaxCache(time, size);
+        }
+        callbackNotNull(callback);
+    }
+
+    @SuppressWarnings("unused")
+    public void mediaPlayerSetNetWorkBufferThreshold(JSONObject map, JSCallback callback) {
+        int playerID = map.getIntValue("playerID");
+        ZegoMediaPlayer player = mediaPlayerDict.get(Integer.toString(playerID));
+        if (player != null) {
+            int threshold = map.getIntValue("threshold");
+            player.setNetWorkBufferThreshold(threshold);
+        }
+        callbackNotNull(callback);
+    }
+
+    @SuppressWarnings("unused")
+    public void mediaPlayerGetTotalDuration(JSONObject map, JSCallback callback) {
+        int playerID = map.getIntValue("playerID");
+        ZegoMediaPlayer player = mediaPlayerDict.get(Integer.toString(playerID));
+        if (player != null) {
+            long totalDuration = player.getTotalDuration();
+            callbackNotNull(callback, totalDuration);
+        } else {
+            callbackNotNull(callback);
+        }
+    }
+
+    @SuppressWarnings("unused")
+    public void mediaPlayerGetCurrentProgress(JSONObject map, JSCallback callback) {
+        int playerID = map.getIntValue("playerID");
+        ZegoMediaPlayer player = mediaPlayerDict.get(Integer.toString(playerID));
+        if (player != null) {
+            long progress = player.getCurrentProgress();
+            callbackNotNull(callback, progress);
+        } else {
+            callbackNotNull(callback);
+        }
+    }
+
+    @SuppressWarnings("unused")
+    public void mediaPlayerGetPlayVolume(JSONObject map, JSCallback callback) {
+        int playerID = map.getIntValue("playerID");
+        ZegoMediaPlayer player = mediaPlayerDict.get(Integer.toString(playerID));
+        if (player != null) {
+            int volume = player.getPlayVolume();
+            callbackNotNull(callback, volume);
+        } else {
+            callbackNotNull(callback);
+        }
+    }
+
+    @SuppressWarnings("unused")
+    public void mediaPlayerGetPublishVolume(JSONObject map, JSCallback callback) {
+        int playerID = map.getIntValue("playerID");
+        ZegoMediaPlayer player = mediaPlayerDict.get(Integer.toString(playerID));
+        if (player != null) {
+            int volume = player.getPublishVolume();
+            callbackNotNull(callback, volume);
+        } else {
+            callbackNotNull(callback);
+        }
+    }
+
+    @SuppressWarnings("unused")
+    public void mediaPlayerGetAudioTrackCount(JSONObject map, JSCallback callback) {
+        int playerID = map.getIntValue("playerID");
+        ZegoMediaPlayer player = mediaPlayerDict.get(Integer.toString(playerID));
+        if (player != null) {
+            int audioTrackCount = player.getAudioTrackCount();
+            callbackNotNull(callback, audioTrackCount);
+        } else {
+            callbackNotNull(callback);
+        }
+    }
+
+    @SuppressWarnings("unused")
+    public void mediaPlayerGetCurrentState(JSONObject map, JSCallback callback) {
+        int playerID = map.getIntValue("playerID");
+        ZegoMediaPlayer player = mediaPlayerDict.get(Integer.toString(playerID));
+        if (player != null) {
+            ZegoMediaPlayerState state = player.getCurrentState();
+            callbackNotNull(callback, state);
+        } else {
+            callbackNotNull(callback);
+        }
+    }
+
+    @SuppressWarnings("unused")
+    public void mediaPlayerGetNetWorkResourceCache(JSONObject map, JSCallback callback) {
+        int playerID = map.getIntValue("playerID");
+        ZegoMediaPlayer player = mediaPlayerDict.get(Integer.toString(playerID));
+        if (player != null) {
+            ZegoNetWorkResourceCache resourceCache = player.getNetWorkResourceCache();
+            JSONObject params = new JSONObject();
+            params.put("time", resourceCache.time);
+            params.put("size", resourceCache.size);
+            callbackNotNull(callback, params);
+        } else {
+            callbackNotNull(callback);
+        }
+    }
+
+    /** Audio Effect Player */
+    @SuppressWarnings("unused")
+    public void createAudioEffectPlayer(JSCallback callback) {
+        ZegoAudioEffectPlayer player = ZegoExpressEngine.getEngine().createAudioEffectPlayer();
+        audioEffectPlayerDict.put(Integer.toString(player.getIndex()), player);
+        JSONObject obj = new JSONObject();
+        obj.put("playerID", player.getIndex());
+        callbackNotNull(callback, obj);
+    }
+
+    @SuppressWarnings("unused")
+    public void destroyAudioEffectPlayer(JSONObject map, JSCallback callback) {
+        int playerID = map.getIntValue("playerID");
+        ZegoAudioEffectPlayer player = audioEffectPlayerDict.get(Integer.toString(playerID));
+        if (player != null) {
+            ZegoExpressEngine.getEngine().destroyAudioEffectPlayer(player);
+        }
+        callbackNotNull(callback);
+    }
+
+    @SuppressWarnings("unused")
+    public void audioEffectPlayerStart(JSONObject map, JSCallback callback) {
+        int playerID = map.getIntValue("playerID");
+        ZegoAudioEffectPlayer player = audioEffectPlayerDict.get(Integer.toString(playerID));
+        if (player != null) {
+            int audioEffectID = map.getIntValue("audioEffectID");
+            String path = map.getString("path");
+            JSONObject config = map.getJSONObject("config");
+            ZegoAudioEffectPlayConfig audioEffectPlayConfig = new ZegoAudioEffectPlayConfig();
+            if (config != null) {
+                audioEffectPlayConfig.isPublishOut = config.getBoolean("isPublishOut");
+                audioEffectPlayConfig.playCount = config.getIntValue("playCount");
+            }
+            player.start(audioEffectID, path, audioEffectPlayConfig);
+        }
+        callbackNotNull(callback);
+    }
+
+    @SuppressWarnings("unused")
+    public void audioEffectPlayerStop(JSONObject map, JSCallback callback) {
+        int playerID = map.getIntValue("playerID");
+        ZegoAudioEffectPlayer player = audioEffectPlayerDict.get(Integer.toString(playerID));
+        if (player != null) {
+            int audioEffectID = map.getIntValue("audioEffectID");
+            player.stop(audioEffectID);
+        }
+        callbackNotNull(callback);
+    }
+
+    @SuppressWarnings("unused")
+    public void audioEffectPlayerPause(JSONObject map, JSCallback callback) {
+        int playerID = map.getIntValue("playerID");
+        ZegoAudioEffectPlayer player = audioEffectPlayerDict.get(Integer.toString(playerID));
+        if (player != null) {
+            int audioEffectID = map.getIntValue("audioEffectID");
+            player.pause(audioEffectID);
+        }
+        callbackNotNull(callback);
+    }
+
+    @SuppressWarnings("unused")
+    public void audioEffectPlayerResume(JSONObject map, JSCallback callback) {
+        int playerID = map.getIntValue("playerID");
+        ZegoAudioEffectPlayer player = audioEffectPlayerDict.get(Integer.toString(playerID));
+        if (player != null) {
+            int audioEffectID = map.getIntValue("audioEffectID");
+            player.resume(audioEffectID);
+        }
+        callbackNotNull(callback);
+    }
+
+    @SuppressWarnings("unused")
+    public void audioEffectPlayerStopAll(JSONObject map, JSCallback callback) {
+        int playerID = map.getIntValue("playerID");
+        ZegoAudioEffectPlayer player = audioEffectPlayerDict.get(Integer.toString(playerID));
+        if (player != null) {
+            player.stopAll();
+        }
+        callbackNotNull(callback);
+    }
+
+    @SuppressWarnings("unused")
+    public void audioEffectPlayerPauseAll(JSONObject map, JSCallback callback) {
+        int playerID = map.getIntValue("playerID");
+        ZegoAudioEffectPlayer player = audioEffectPlayerDict.get(Integer.toString(playerID));
+        if (player != null) {
+            player.pauseAll();
+        }
+        callbackNotNull(callback);
+    }
+
+    @SuppressWarnings("unused")
+    public void audioEffectPlayerResumeAll(JSONObject map, JSCallback callback) {
+        int playerID = map.getIntValue("playerID");
+        ZegoAudioEffectPlayer player = audioEffectPlayerDict.get(Integer.toString(playerID));
+        if (player != null) {
+            player.resumeAll();
+        }
+        callbackNotNull(callback);
+    }
+
+    @SuppressWarnings("unused")
+    public void audioEffectPlayerSeekTo(JSONObject map, final JSCallback callback) {
+        int playerID = map.getIntValue("playerID");
+        ZegoAudioEffectPlayer player = audioEffectPlayerDict.get(Integer.toString(playerID));
+        if (player != null) {
+            long millisecond = map.getLong("millisecond");
+            int audioEffectID = map.getIntValue("audioEffectID");
+            player.seekTo(audioEffectID, millisecond, new IZegoAudioEffectPlayerSeekToCallback() {
+                @Override
+                public void onSeekToCallback(int i) {
+                    callbackNotNull(callback, i);
+                }
+            });
+        }
+    }
+
+    @SuppressWarnings("unused")
+    public void audioEffectPlayerSetVolume(JSONObject map, JSCallback callback) {
+        int playerID = map.getIntValue("playerID");
+        ZegoAudioEffectPlayer player = audioEffectPlayerDict.get(Integer.toString(playerID));
+        if (player != null) {
+            int volume = map.getIntValue("volume");
+            int audioEffectID = map.getIntValue("audioEffectID");
+            player.setVolume(audioEffectID, volume);
+        }
+        callbackNotNull(callback);
+    }
+
+    @SuppressWarnings("unused")
+    public void audioEffectPlayerSetVolumeAll(JSONObject map, JSCallback callback) {
+        int playerID = map.getIntValue("playerID");
+        ZegoAudioEffectPlayer player = audioEffectPlayerDict.get(Integer.toString(playerID));
+        if (player != null) {
+            int volume = map.getIntValue("volume");
+            player.setVolumeAll(volume);
+        }
+        callbackNotNull(callback);
+    }
+
+    @SuppressWarnings("unused")
+    public void audioEffectPlayerGetTotalDuration(JSONObject map, JSCallback callback) {
+        int playerID = map.getIntValue("playerID");
+        ZegoAudioEffectPlayer player = audioEffectPlayerDict.get(Integer.toString(playerID));
+        if (player != null) {
+            int audioEffectID = map.getIntValue("audioEffectID");
+            long duration = player.getTotalDuration(audioEffectID);
+            callbackNotNull(callback, duration);
+        } else {
+            callbackNotNull(callback);
+        }
+    }
+
+    @SuppressWarnings("unused")
+    public void audioEffectPlayerGetCurrentProgress(JSONObject map, JSCallback callback) {
+        int playerID = map.getIntValue("playerID");
+        ZegoAudioEffectPlayer player = audioEffectPlayerDict.get(Integer.toString(playerID));
+        if (player != null) {
+            int audioEffectID = map.getIntValue("audioEffectID");
+            long progress = player.getCurrentProgress(audioEffectID);
+            callbackNotNull(callback, progress);
+        } else {
+            callbackNotNull(callback);
+        }
+    }
+
+    @SuppressWarnings("unused")
+    public void audioEffectPlayerLoadResource(JSONObject map, final JSCallback callback) {
+        int playerID = map.getIntValue("playerID");
+        ZegoAudioEffectPlayer player = audioEffectPlayerDict.get(Integer.toString(playerID));
+        if (player != null) {
+            int audioEffectID = map.getIntValue("audioEffectID");
+            String path = map.getString("path");
+            player.loadResource(audioEffectID, path, new IZegoAudioEffectPlayerLoadResourceCallback() {
+                @Override
+                public void onLoadResourceCallback(int i) {
+                    callbackNotNull(callback, i);
+                }
+            });
+        }
+    }
+
+    @SuppressWarnings("unused")
+    public void audioEffectPlayerUnloadResource(JSONObject map, JSCallback callback) {
+        int playerID = map.getIntValue("playerID");
+        ZegoAudioEffectPlayer player = audioEffectPlayerDict.get(Integer.toString(playerID));
+        if (player != null) {
+            int audioEffectID = map.getIntValue("audioEffectID");
+            player.unloadResource(audioEffectID);
+        }
+        callbackNotNull(callback);
+    }
+
+    private final IZegoMediaPlayerEventHandler mediaPlayerEventHandler = new IZegoMediaPlayerEventHandler() {
         @Override
         public void onMediaPlayerStateUpdate(ZegoMediaPlayer mediaPlayer, ZegoMediaPlayerState state, int errorCode) {
             super.onMediaPlayerStateUpdate(mediaPlayer, state, errorCode);
@@ -1933,11 +2336,11 @@ public class ZegoExpressUniAppEngine extends UniModule {
         public void onMediaPlayerRecvSEI(ZegoMediaPlayer mediaPlayer, byte[] data) {
             super.onMediaPlayerRecvSEI(mediaPlayer, data);
 
-            sendMediaPlayerEvent("mediaPlayerRecvSEI", mediaPlayer.getIndex(), data);
+            sendMediaPlayerEvent("mediaPlayerRecvSEI", mediaPlayer.getIndex(), ByteBuffer.wrap(data));
         }
     };
 
-    private IZegoMediaPlayerVideoHandler mediaPlayerVideoHandler = new IZegoMediaPlayerVideoHandler() {
+    private final IZegoMediaPlayerVideoHandler mediaPlayerVideoHandler = new IZegoMediaPlayerVideoHandler() {
         @Override
         public void onVideoFrame(ZegoMediaPlayer zegoMediaPlayer, ByteBuffer[] byteBuffers, int[] ints, ZegoVideoFrameParam zegoVideoFrameParam) {
 
@@ -1953,7 +2356,7 @@ public class ZegoExpressUniAppEngine extends UniModule {
         }
     };
 
-    private IZegoMediaPlayerAudioHandler mediaPlayerAudioHandler = new IZegoMediaPlayerAudioHandler() {
+    private final IZegoMediaPlayerAudioHandler mediaPlayerAudioHandler = new IZegoMediaPlayerAudioHandler() {
         @Override
         public void onAudioFrame(ZegoMediaPlayer zegoMediaPlayer, ByteBuffer byteBuffer, int i, ZegoAudioFrameParam zegoAudioFrameParam) {
 
@@ -1965,10 +2368,59 @@ public class ZegoExpressUniAppEngine extends UniModule {
         }
     };
 
+    /** Private */
+    @SuppressWarnings("unused")
+    public void setPluginVersion(JSONObject map, JSCallback callback) {
+        String version = map.getString("version");
+        ZegoLog.log("*** Plugin Version: %s", version);
+        callbackNotNull(callback);
+    }
+
+    @SuppressWarnings("unused")
+    @JSMethod (uiThread = false)
+    public void requestCameraAndAudioPermission() {
+        String[] PERMISSIONS_STORAGE = {
+                "android.permission.CAMERA",
+                "android.permission.RECORD_AUDIO"};
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (ContextCompat.checkSelfPermission(mWXSDKInstance.getContext(), "android.permission.CAMERA") != PackageManager.PERMISSION_GRANTED
+                    || ContextCompat.checkSelfPermission(mWXSDKInstance.getContext(), "android.permission.RECORD_AUDIO") != PackageManager.PERMISSION_GRANTED) {
+                Activity activity = (Activity)mWXSDKInstance.getContext();
+                activity.requestPermissions(PERMISSIONS_STORAGE, 101);
+            }
+        }
+    }
+
+    @SuppressWarnings("unused")
+    @JSMethod (uiThread = false)
+    public boolean getCameraAndAudioPermissionResult() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            return ContextCompat.checkSelfPermission(mWXSDKInstance.getContext(), "android.permission.CAMERA") == PackageManager.PERMISSION_GRANTED
+                    && ContextCompat.checkSelfPermission(mWXSDKInstance.getContext(), "android.permission.RECORD_AUDIO") == PackageManager.PERMISSION_GRANTED;
+        } else {
+            return true;
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        int REQUEST_CODE_ADDRESS = 100;
+        if (requestCode == REQUEST_CODE_ADDRESS) {
+            if (grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
+                // Permission Granted 授予权限
+                //处理授权之后逻辑
+
+            } else {
+                // Permission Denied 权限被拒绝
+            }
+        }
+    }
+
     /**
      * bitmap 转base64
-     * @param bitmap
-     * @return
+     * @param bitmap BitMap
+     * @return base64
      */
     private static String bitmapToBase64(Bitmap bitmap) {
         String result = null;
