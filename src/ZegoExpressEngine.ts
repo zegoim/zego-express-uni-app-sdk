@@ -20,12 +20,12 @@ import {
     ZegoAECMode,
     ZegoANSMode,
     ZegoAudioRoute,
-    ZegoMixerTask
+    ZegoMixerTask,
+    ZegoMixerStartResult,
+    ZegoMixerStopResult
 } from "./ZegoExpressDefines"
 import { ZegoEventListener} from './ZegoExpressEventHandler';
 import {ZegoExpressEngineImpl} from './impl/ZegoExpressEngineImpl';
-import { ZegoAutoMixerTask, ZegoMixerStartResult, ZegoMixerStopResult } from "index";
-
 
 export default class ZegoExpressEngine {
 	/**
@@ -626,7 +626,29 @@ export default class ZegoExpressEngine {
      */
     useFrontCamera(enable: boolean, channel?:ZegoPublishChannel): Promise<void> {
         return ZegoExpressEngineImpl.getInstance().useFrontCamera(enable, channel);
-    }    
+    }
+
+    /**
+     * Set the camera zoom factor.
+     *
+     * Every time the camera is restarted, the camera zoom factor will be restored to its initial value.
+     *
+     * @param factor The zoom factor of the camera, the minimum value is 1.0, and the maximum value is the return value of [getCameraMaxZoomFactor].
+     */
+    setCameraZoomFactor(factor: number, channel?:ZegoPublishChannel): Promise<void> {
+        return ZegoExpressEngineImpl.getInstance().setCameraZoomFactor(factor, channel);
+    }
+
+    /**
+     * Get the maximum zoom factor of the camera.
+     *
+     * This is only available after the camera has been successfully started, and can generally be called when the captured first frame is received, aka [onPublisherCapturedVideoFirstFrame] callback.
+     *
+     * @return The maximum zoom factor of the camera.
+     */
+    getCameraMaxZoomFactor(): Promise<number> {
+        return ZegoExpressEngineImpl.getInstance().getCameraMaxZoomFactor();
+    }
 
     /**
      * Enables or disables acoustic echo cancellation (AEC).
