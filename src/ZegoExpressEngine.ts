@@ -36,6 +36,13 @@ export default class ZegoExpressEngine {
     }
 
     /**
+	 * Creates a singleton instance of ZegoExpressEngine.
+	 */
+	static createEngineWithProfile(profile: ZegoEngineProfile): Promise<ZegoExpressEngine> {
+		return ZegoExpressEngineImpl.createEngineWithProfile(profile);
+	}
+
+    /**
      * Initializes the Engine.
      *
      * The engine needs to be initialized before calling other APIs

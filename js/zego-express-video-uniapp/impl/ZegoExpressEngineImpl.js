@@ -80,6 +80,14 @@ export default class ZegoExpressEngineImpl {
 		});
 	}
 
+	static createEngineWithProfile(profile) {
+		if (ZegoExpressEngineImpl.instance == null) {
+			ZegoExpressEngineImpl.instance = new ZegoExpressEngineImpl()
+			nativeEngine.createEngineWithProfile(profile);
+		}
+		return ZegoExpressEngineImpl.instance;
+	}
+
 	static createEngine(appID, appSign, isTestEnv, scenario) {
 		if (ZegoExpressEngineImpl.instance == null) {
 			ZegoExpressEngineImpl.instance = new ZegoExpressEngineImpl()

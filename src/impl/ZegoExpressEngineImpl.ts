@@ -91,6 +91,17 @@ export class ZegoExpressEngineImpl {
         throw new Error('Get instance failed, Please create engine first');
     }
 
+	static async createEngineWithProfile(profile: ZegoEngineProfile): Promise<ZegoExpressEngineImpl> {
+		if (engine) {
+			return engine as ZegoExpressEngineImpl;
+		}
+		await ZegoExpressEngineImpl._callMethod("createEngineWithProfile", { profile });
+		engine = new ZegoExpressEngineImpl();
+		await ZegoExpressEngineImpl._callMethod("setPluginVersion", { version: pluginVersion });
+		
+		return engine; 
+	}
+
     static async createEngine(appID: number, appSign: string, isTestEnv: boolean, scenario: ZegoScenario): Promise<ZegoExpressEngineImpl> {
         if (engine) {
             return engine as ZegoExpressEngineImpl;
