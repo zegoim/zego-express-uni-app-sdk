@@ -11,6 +11,7 @@ import {
     ZegoCapturePipelineScaleMode,
     ZegoCDNConfig,
     ZegoEngineConfig, 
+    ZegoEngineProfile,
     ZegoIMSendBarrageMessageResult, 
     ZegoIMSendBroadcastMessageResult, 
     ZegoIMSendCustomCommandResult, 

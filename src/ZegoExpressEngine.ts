@@ -7,6 +7,7 @@ import {
     ZegoPlayerConfig,
     ZegoMediaPlayer,
     ZegoEngineConfig,
+    ZegoEngineProfile,
     ZegoVideoMirrorMode,
     ZegoOrientation,
     ZegoIMSendBroadcastMessageResult,
