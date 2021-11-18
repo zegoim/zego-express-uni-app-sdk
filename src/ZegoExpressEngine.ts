@@ -7,6 +7,7 @@ import {
     ZegoPlayerConfig,
     ZegoMediaPlayer,
     ZegoEngineConfig,
+    ZegoEngineProfile,
     ZegoVideoMirrorMode,
     ZegoOrientation,
     ZegoIMSendBroadcastMessageResult,
@@ -34,6 +35,13 @@ export default class ZegoExpressEngine {
     static instance(): ZegoExpressEngine {
         return ZegoExpressEngineImpl.getInstance();
     }
+
+    /**
+	 * Creates a singleton instance of ZegoExpressEngine.
+	 */
+	static createEngineWithProfile(profile: ZegoEngineProfile): Promise<ZegoExpressEngine> {
+		return ZegoExpressEngineImpl.createEngineWithProfile(profile);
+	}
 
     /**
      * Initializes the Engine.

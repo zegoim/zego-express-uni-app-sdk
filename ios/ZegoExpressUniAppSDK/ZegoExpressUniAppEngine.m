@@ -90,6 +90,24 @@ UNI_EXPORT_METHOD(@selector(callMethod:callback:))
 }
 
 #pragma mark - Engine
+- (void)createEngineWithProfile:(NSDictionary *)params callback:(UniModuleKeepAliveCallback)callback {
+	NSDictionary *profileMap = params[@"profile"];
+    unsigned int appID = (unsigned int)[DCUniConvert NSUInteger:profileMap[@"appID"]];
+    NSString *appSign = [DCUniConvert NSString:profileMap[@"appSign"]];
+    ZegoScenario scenario = [DCUniConvert NSUInteger:profileMap[@"scenario"]];
+    
+    [ZegoExpressEngine setApiCalledCallback:self];
+    
+	ZegoEngineProfile *profile = [ZegoEngineProfile new];
+	profile.appID = appID;
+	profile.appSign = appSign;
+	profile.scenario = scenario;
+    [ZegoExpressEngine createEngineWithProfile:profile eventHandler:self];
+	
+    self.mIsInited = true;
+    [self callbackNotNull:callback];
+}
+
 - (void)createEngine:(NSDictionary *)params callback:(UniModuleKeepAliveCallback)callback {
     unsigned int appID = (unsigned int)[DCUniConvert NSUInteger:params[@"appID"]];
     NSString *appSign = [DCUniConvert NSString:params[@"appSign"]];

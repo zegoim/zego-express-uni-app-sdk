@@ -7,7 +7,7 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Rect;
 import android.os.Build;
-import android.support.v4.content.ContextCompat;
+import androidx.core.content.ContextCompat;
 import android.util.Base64;
 import android.util.Log;
 
@@ -94,6 +94,7 @@ import im.zego.zegoexpress.entity.ZegoBroadcastMessageInfo;
 import im.zego.zegoexpress.entity.ZegoCDNConfig;
 import im.zego.zegoexpress.entity.ZegoCanvas;
 import im.zego.zegoexpress.entity.ZegoEngineConfig;
+import im.zego.zegoexpress.entity.ZegoEngineProfile;
 import im.zego.zegoexpress.entity.ZegoLogConfig;
 import im.zego.zegoexpress.entity.ZegoMixerAudioConfig;
 import im.zego.zegoexpress.entity.ZegoMixerInput;
@@ -187,6 +188,33 @@ public class ZegoExpressUniAppEngine extends UniModule {
         }
     }
 
+	/** Engine */
+	@SuppressWarnings("unused")
+	public void createEngineWithProfile(JSONObject params, JSCallback callback) {
+		JSONObject profileParam = params.getJSONObject("profile");
+		final long appID = profileParam.getLong("appID");
+		final String appSign = profileParam.getString("appSign");
+		int scenario = profileParam.getIntValue("scenario");
+		
+		ZegoEngineProfile profile = new ZegoEngineProfile();
+		profile.appID = appID;
+		profile.appSign = appSign;
+		profile.scenario = ZegoScenario.getZegoScenario(scenario);
+		profile.application = (Application)this.mWXSDKInstance.getContext().getApplicationContext();
+		
+		ZegoExpressEngine.setApiCalledCallback(new IZegoApiCalledEventHandler() {
+		    @Override
+		    public void onApiCalledResult(int errorCode, String funcName, String info) {
+		        super.onApiCalledResult(errorCode, funcName, info);
+		        sendEvent("apiCalledResult", errorCode, funcName, info);
+		    }
+		});
+		
+		ZegoExpressEngine.createEngine(profile, zegoEventHandler);
+		mIsInited = true;
+		callbackNotNull(callback);
+	}
+	
     /** Engine */
     @SuppressWarnings("unused")
     public void createEngine(JSONObject params, JSCallback callback) {
@@ -203,337 +231,340 @@ public class ZegoExpressUniAppEngine extends UniModule {
             }
         });
 
-        ZegoExpressEngine.createEngine(appID, appSign, isTestEnv, ZegoScenario.getZegoScenario(scenario), (Application)this.mWXSDKInstance.getContext().getApplicationContext(), new IZegoEventHandler() {
-            @Override
-            public void onDebugError(int errorCode, String funcName, String info) {
-                super.onDebugError(errorCode, funcName, info);
-                sendEvent("debugError", errorCode, funcName, info);
-            }
-
-            @Override
-            public void onEngineStateUpdate(ZegoEngineState state) {
-                super.onEngineStateUpdate(state);
-                sendEvent("engineStateUpdate", state.value());
-            }
-
-            @Override
-            public void onRoomStateUpdate(String roomID, ZegoRoomState state, int errorCode, org.json.JSONObject extendedData) {
-                super.onRoomStateUpdate(roomID, state, errorCode, extendedData);
-                sendEvent("roomStateUpdate", roomID, state.value(), errorCode, JSONObject.parse(extendedData.toString()));
-            }
-
-            @Override
-            public void onRoomUserUpdate(String roomID, ZegoUpdateType updateType, ArrayList<ZegoUser> userList) {
-                super.onRoomUserUpdate(roomID, updateType, userList);
-
-                JSONArray userListArray = new JSONArray();
-                for (ZegoUser user : userList) {
-                    JSONObject userMap = new JSONObject();
-                    userMap.put("userID", user.userID);
-                    userMap.put("userName", user.userName);
-                    userListArray.add(userMap);
-                }
-                sendEvent("roomUserUpdate", roomID, updateType.value(), userListArray);
-            }
-
-
-            @Override
-            public void onRoomOnlineUserCountUpdate(String roomID, int count) {
-                super.onRoomOnlineUserCountUpdate(roomID, count);
-                sendEvent("roomOnlineUserCountUpdate", roomID, count);
-            }
-
-            @Override
-            public void onRoomExtraInfoUpdate(String roomID, ArrayList<ZegoRoomExtraInfo> roomExtraInfoList) {
-                super.onRoomExtraInfoUpdate(roomID, roomExtraInfoList);
-                JSONArray roomExtraInfoArray = new JSONArray();
-                for(ZegoRoomExtraInfo info : roomExtraInfoList) {
-                    JSONObject infoMap = new JSONObject();
-                    infoMap.put("key", info.key);
-                    infoMap.put("value", info.value);
-                    infoMap.put("updateTime", info.updateTime);
-
-                    JSONObject userMap = new JSONObject();
-                    userMap.put("userID", info.updateUser.userID);
-                    userMap.put("userName", info.updateUser.userName);
-                    infoMap.put("updateUser", userMap);
-                    roomExtraInfoArray.add(infoMap);
-                }
-                sendEvent("roomExtraInfoUpdate", roomID, roomExtraInfoArray);
-            }
-
-            @Override
-            public void onRoomStreamUpdate(String roomID, ZegoUpdateType updateType, ArrayList<ZegoStream> streamList, org.json.JSONObject extendedData) {
-                super.onRoomStreamUpdate(roomID, updateType, streamList, extendedData);
-                JSONArray streamListArray = new JSONArray();
-                for(ZegoStream stream : streamList) {
-                    JSONObject streamMap = new JSONObject();
-                    streamMap.put("streamID", stream.streamID);
-                    streamMap.put("extraInfo", stream.extraInfo);
-
-                    JSONObject userMap = new JSONObject();
-                    userMap.put("userID", stream.user.userID);
-                    userMap.put("userName", stream.user.userName);
-                    streamMap.put("user", userMap);
-                    streamListArray.add(streamMap);
-                }
-                sendEvent("roomStreamUpdate", roomID, updateType.value(), streamListArray, JSONObject.parse(extendedData.toString()));
-            }
-
-            @Override
-            public void onRoomStreamExtraInfoUpdate(String roomID, ArrayList<ZegoStream> streamList) {
-                super.onRoomStreamExtraInfoUpdate(roomID, streamList);
-                JSONArray streamListArray = new JSONArray();
-                for(ZegoStream stream : streamList) {
-                    JSONObject streamMap = new JSONObject();
-                    streamMap.put("streamID", stream.streamID);
-                    streamMap.put("extraInfo", stream.extraInfo);
-
-                    JSONObject userMap = new JSONObject();
-                    userMap.put("userID", stream.user.userID);
-                    userMap.put("userName", stream.user.userName);
-                    streamMap.put("user", userMap);
-                    streamListArray.add(streamMap);
-                }
-                sendEvent("roomStreamExtraInfoUpdate", roomID, streamListArray);
-            }
-
-            @Override
-            public void onPublisherStateUpdate(String streamID, ZegoPublisherState state, int errorCode, org.json.JSONObject extendedData) {
-                super.onPublisherStateUpdate(streamID, state, errorCode, extendedData);
-                sendEvent("publisherStateUpdate", streamID, state.value(), errorCode, JSONObject.parse(extendedData.toString()));
-            }
-
-            @Override
-            public void onPublisherQualityUpdate(String streamID, ZegoPublishStreamQuality quality) {
-                super.onPublisherQualityUpdate(streamID, quality);
-
-                JSONObject qualityMap = new JSONObject();
-                qualityMap.put("videoCaptureFPS", quality.videoCaptureFPS);
-                qualityMap.put("videoEncodeFPS", quality.videoEncodeFPS);
-                qualityMap.put("videoSendFPS", quality.videoSendFPS);
-                qualityMap.put("videoKBPS", quality.videoKBPS);
-                qualityMap.put("audioCaptureFPS", quality.audioCaptureFPS);
-                qualityMap.put("audioSendFPS", quality.audioSendFPS);
-                qualityMap.put("audioKBPS", quality.audioKBPS);
-                qualityMap.put("rtt", quality.rtt);
-                qualityMap.put("packetLostRate", quality.packetLostRate);
-                qualityMap.put("level", quality.level.value());
-                qualityMap.put("isHardwareEncode", quality.isHardwareEncode);
-                qualityMap.put("videoCodecID", quality.videoCodecID.value());
-                qualityMap.put("totalSendBytes", quality.totalSendBytes);
-                qualityMap.put("audioSendBytes", quality.audioSendBytes);
-                qualityMap.put("videoSendBytes", quality.videoSendBytes);
-
-                sendEvent("publisherQualityUpdate", streamID, qualityMap);
-            }
-
-            @Override
-            public void onPublisherCapturedAudioFirstFrame() {
-                super.onPublisherCapturedAudioFirstFrame();
-
-                JSONObject args = new JSONObject();
-                sendEvent("publisherCapturedAudioFirstFrame", args);
-            }
-
-            @Override
-            public void onPublisherCapturedVideoFirstFrame(ZegoPublishChannel channel) {
-                super.onPublisherCapturedVideoFirstFrame(channel);
-
-                sendEvent("publisherCapturedVideoFirstFrame", channel.value());
-            }
-
-            @Override
-            public void onPublisherVideoSizeChanged(int width, int height, ZegoPublishChannel channel) {
-                super.onPublisherVideoSizeChanged(width, height, channel);
-                sendEvent("publisherVideoSizeChanged", width, height, channel.value());
-            }
-
-            @Override
-            public void onPlayerStateUpdate(String streamID, ZegoPlayerState state, int errorCode, org.json.JSONObject extendedData) {
-                super.onPlayerStateUpdate(streamID, state, errorCode, extendedData);
-                sendEvent("playerStateUpdate", streamID, state.value(), errorCode, JSONObject.parse(extendedData.toString()));
-            }
-
-            @Override
-            public void onPlayerQualityUpdate(String streamID, ZegoPlayStreamQuality quality) {
-                super.onPlayerQualityUpdate(streamID, quality);
-
-                JSONObject qualityMap = new JSONObject();
-                qualityMap.put("videoRecvFPS", quality.videoRecvFPS);
-                qualityMap.put("videoDejitterFPS", quality.videoDejitterFPS);
-                qualityMap.put("videoDecodeFPS", quality.videoDecodeFPS);
-                qualityMap.put("videoRenderFPS", quality.videoRenderFPS);
-                qualityMap.put("videoKBPS", quality.videoKBPS);
-                qualityMap.put("videoBreakRate", quality.videoBreakRate);
-                qualityMap.put("audioRecvFPS", quality.audioRecvFPS);
-                qualityMap.put("audioDejitterFPS", quality.audioDejitterFPS);
-                qualityMap.put("audioDecodeFPS", quality.audioDecodeFPS);
-                qualityMap.put("audioRenderFPS", quality.audioRenderFPS);
-                qualityMap.put("audioKBPS", quality.audioKBPS);
-                qualityMap.put("audioBreakRate", quality.audioBreakRate);
-                qualityMap.put("rtt", quality.rtt);
-                qualityMap.put("packetLostRate", quality.packetLostRate);
-                qualityMap.put("peerToPeerPacketLostRate", quality.peerToPeerPacketLostRate);
-                qualityMap.put("peerToPeerDelay", quality.peerToPeerDelay);
-                qualityMap.put("level", quality.level.value());
-                qualityMap.put("delay", quality.delay);
-                qualityMap.put("avTimestampDiff", quality.avTimestampDiff);
-                qualityMap.put("isHardwareDecode", quality.isHardwareDecode);
-                qualityMap.put("videoCodecID", quality.videoCodecID.value());
-                qualityMap.put("totalRecvBytes", quality.totalRecvBytes);
-                qualityMap.put("audioRecvBytes", quality.audioRecvBytes);
-                qualityMap.put("videoRecvBytes", quality.videoRecvBytes);
-
-                sendEvent("playerQualityUpdate", streamID, qualityMap);
-            }
-
-            @Override
-            public void onPlayerMediaEvent(String streamID, ZegoPlayerMediaEvent event) {
-                super.onPlayerMediaEvent(streamID, event);
-
-                sendEvent("playerMediaEvent", streamID, event.value());
-            }
-
-            @Override
-            public void onPlayerRecvAudioFirstFrame(String streamID) {
-                super.onPlayerRecvAudioFirstFrame(streamID);
-                sendEvent("playerRecvAudioFirstFrame", streamID);
-            }
-
-            @Override
-            public void onPlayerRecvVideoFirstFrame(String streamID) {
-                super.onPlayerRecvVideoFirstFrame(streamID);
-                sendEvent("playerRecvVideoFirstFrame", streamID);
-            }
-
-            @Override
-            public void onPlayerRenderVideoFirstFrame(String streamID) {
-                super.onPlayerRenderVideoFirstFrame(streamID);
-                sendEvent("playerRenderVideoFirstFrame", streamID);
-            }
-
-            @Override
-            public void onPlayerVideoSizeChanged(String streamID, int width, int height) {
-                super.onPlayerVideoSizeChanged(streamID, width, height);
-                sendEvent("playerVideoSizeChanged", streamID, width, height);
-            }
-
-            @Override
-            public void onMixerRelayCDNStateUpdate(String taskID, ArrayList<ZegoStreamRelayCDNInfo> infoList) {
-                super.onMixerRelayCDNStateUpdate(taskID, infoList);
-                JSONArray infoArray = new JSONArray();
-                for (ZegoStreamRelayCDNInfo info : infoList) {
-                    JSONObject infoMap = new JSONObject();
-                    infoMap.put("url", info.url);
-                    infoMap.put("state", info.state.value());
-                    infoMap.put("stateTime", info.stateTime);
-                    infoMap.put("updateReason", info.updateReason.value());
-
-                    infoArray.add(infoMap);
-                }
-                sendEvent("mixerRelayCDNStateUpdate", taskID, infoArray);
-            }
-
-            @Override
-            public void onMixerSoundLevelUpdate(HashMap<Integer, Float> soundLevels) {
-                super.onMixerSoundLevelUpdate(soundLevels);
-                sendEvent("mixerSoundLevelUpdate", soundLevels);
-            }
-
-            @Override
-            public void onCapturedSoundLevelUpdate(float soundLevel) {
-                super.onCapturedSoundLevelUpdate(soundLevel);
-                sendEvent("capturedSoundLevelUpdate", soundLevel);
-            }
-
-            @Override
-            public void onRemoteSoundLevelUpdate(HashMap<String, Float> soundLevels) {
-                super.onRemoteSoundLevelUpdate(soundLevels);
-
-                JSONObject soundLevelsMap = new JSONObject();
-                for(Map.Entry<String, Float> entry: soundLevels.entrySet()) {
-                    soundLevelsMap.put(entry.getKey(), entry.getValue());
-                }
-                sendEvent("remoteSoundLevelUpdate", soundLevelsMap);
-            }
-
-            @Override
-            public void onDeviceError(int errorCode, String deviceName) {
-                super.onDeviceError(errorCode, deviceName);
-                sendEvent("deviceError", errorCode, deviceName);
-            }
-
-            @Override
-            public void onRemoteCameraStateUpdate(String streamID, ZegoRemoteDeviceState state) {
-                super.onRemoteCameraStateUpdate(streamID, state);
-                sendEvent("remoteCameraStateUpdate", streamID, state.value());
-            }
-
-            @Override
-            public void onRemoteMicStateUpdate(String streamID, ZegoRemoteDeviceState state) {
-                super.onRemoteMicStateUpdate(streamID, state);
-                sendEvent("remoteMicStateUpdate", streamID, state.value());
-            }
-
-            @Override
-            public void onIMRecvBroadcastMessage(String roomID, ArrayList<ZegoBroadcastMessageInfo> messageList) {
-                super.onIMRecvBroadcastMessage(roomID, messageList);
-                JSONArray messageInfoArray = new JSONArray();
-                for (ZegoBroadcastMessageInfo info : messageList) {
-                    JSONObject infoMap = new JSONObject();
-                    infoMap.put("message", info.message);
-                    infoMap.put("messageID", info.messageID);
-                    infoMap.put("sendTime", info.sendTime);
-
-                    ZegoUser fromUser = info.fromUser;
-                    JSONObject userMap = new JSONObject();
-                    userMap.put("userID", fromUser.userID);
-                    userMap.put("userName", fromUser.userName);
-                    infoMap.put("fromUser", userMap);
-
-                    messageInfoArray.add(infoMap);
-                }
-
-                sendEvent("IMRecvBroadcastMessage", roomID, messageInfoArray);
-            }
-
-            @Override
-            public void onIMRecvBarrageMessage(String roomID, ArrayList<ZegoBarrageMessageInfo> messageList) {
-                super.onIMRecvBarrageMessage(roomID, messageList);
-
-                JSONArray messageInfoArray = new JSONArray();
-                for (ZegoBarrageMessageInfo info : messageList) {
-                    JSONObject infoMap = new JSONObject();
-                    infoMap.put("message", info.message);
-                    infoMap.put("messageID", info.messageID);
-                    infoMap.put("sendTime", info.sendTime);
-
-                    ZegoUser fromUser = info.fromUser;
-                    JSONObject userMap = new JSONObject();
-                    userMap.put("userID", fromUser.userID);
-                    userMap.put("userName", fromUser.userName);
-                    infoMap.put("fromUser", userMap);
-
-                    messageInfoArray.add(infoMap);
-                }
-
-                sendEvent("IMRecvBarrageMessage", roomID, messageInfoArray);
-            }
-
-            @Override
-            public void onIMRecvCustomCommand(String roomID, ZegoUser fromUser, String command) {
-                super.onIMRecvCustomCommand(roomID, fromUser, command);
-                JSONObject userMap = new JSONObject();
-                userMap.put("userID", fromUser.userID);
-                userMap.put("userName", fromUser.userName);
-
-                sendEvent("IMRecvCustomCommand", roomID, userMap, command);
-            }
-        });
+        ZegoExpressEngine.createEngine(appID, appSign, isTestEnv, ZegoScenario.getZegoScenario(scenario), (Application)this.mWXSDKInstance.getContext().getApplicationContext(), zegoEventHandler);
         mIsInited = true;
         callbackNotNull(callback);
     }
+	
+	private final IZegoEventHandler zegoEventHandler = new IZegoEventHandler() {
+		@Override
+		public void onDebugError(int errorCode, String funcName, String info) {
+		    super.onDebugError(errorCode, funcName, info);
+		    sendEvent("debugError", errorCode, funcName, info);
+		}
+		
+		@Override
+		public void onEngineStateUpdate(ZegoEngineState state) {
+		    super.onEngineStateUpdate(state);
+		    sendEvent("engineStateUpdate", state.value());
+		}
+		
+		@Override
+		public void onRoomStateUpdate(String roomID, ZegoRoomState state, int errorCode, org.json.JSONObject extendedData) {
+		    super.onRoomStateUpdate(roomID, state, errorCode, extendedData);
+		    sendEvent("roomStateUpdate", roomID, state.value(), errorCode, JSONObject.parse(extendedData.toString()));
+		}
+		
+		@Override
+		public void onRoomUserUpdate(String roomID, ZegoUpdateType updateType, ArrayList<ZegoUser> userList) {
+		    super.onRoomUserUpdate(roomID, updateType, userList);
+		
+		    JSONArray userListArray = new JSONArray();
+		    for (ZegoUser user : userList) {
+		        JSONObject userMap = new JSONObject();
+		        userMap.put("userID", user.userID);
+		        userMap.put("userName", user.userName);
+		        userListArray.add(userMap);
+		    }
+		    sendEvent("roomUserUpdate", roomID, updateType.value(), userListArray);
+		}
+		
+		
+		@Override
+		public void onRoomOnlineUserCountUpdate(String roomID, int count) {
+		    super.onRoomOnlineUserCountUpdate(roomID, count);
+		    sendEvent("roomOnlineUserCountUpdate", roomID, count);
+		}
+		
+		@Override
+		public void onRoomExtraInfoUpdate(String roomID, ArrayList<ZegoRoomExtraInfo> roomExtraInfoList) {
+		    super.onRoomExtraInfoUpdate(roomID, roomExtraInfoList);
+		    JSONArray roomExtraInfoArray = new JSONArray();
+		    for(ZegoRoomExtraInfo info : roomExtraInfoList) {
+		        JSONObject infoMap = new JSONObject();
+		        infoMap.put("key", info.key);
+		        infoMap.put("value", info.value);
+		        infoMap.put("updateTime", info.updateTime);
+		
+		        JSONObject userMap = new JSONObject();
+		        userMap.put("userID", info.updateUser.userID);
+		        userMap.put("userName", info.updateUser.userName);
+		        infoMap.put("updateUser", userMap);
+		        roomExtraInfoArray.add(infoMap);
+		    }
+		    sendEvent("roomExtraInfoUpdate", roomID, roomExtraInfoArray);
+		}
+		
+		@Override
+		public void onRoomStreamUpdate(String roomID, ZegoUpdateType updateType, ArrayList<ZegoStream> streamList, org.json.JSONObject extendedData) {
+		    super.onRoomStreamUpdate(roomID, updateType, streamList, extendedData);
+		    JSONArray streamListArray = new JSONArray();
+		    for(ZegoStream stream : streamList) {
+		        JSONObject streamMap = new JSONObject();
+		        streamMap.put("streamID", stream.streamID);
+		        streamMap.put("extraInfo", stream.extraInfo);
+		
+		        JSONObject userMap = new JSONObject();
+		        userMap.put("userID", stream.user.userID);
+		        userMap.put("userName", stream.user.userName);
+		        streamMap.put("user", userMap);
+		        streamListArray.add(streamMap);
+		    }
+		    sendEvent("roomStreamUpdate", roomID, updateType.value(), streamListArray, JSONObject.parse(extendedData.toString()));
+		}
+		
+		@Override
+		public void onRoomStreamExtraInfoUpdate(String roomID, ArrayList<ZegoStream> streamList) {
+		    super.onRoomStreamExtraInfoUpdate(roomID, streamList);
+		    JSONArray streamListArray = new JSONArray();
+		    for(ZegoStream stream : streamList) {
+		        JSONObject streamMap = new JSONObject();
+		        streamMap.put("streamID", stream.streamID);
+		        streamMap.put("extraInfo", stream.extraInfo);
+		
+		        JSONObject userMap = new JSONObject();
+		        userMap.put("userID", stream.user.userID);
+		        userMap.put("userName", stream.user.userName);
+		        streamMap.put("user", userMap);
+		        streamListArray.add(streamMap);
+		    }
+		    sendEvent("roomStreamExtraInfoUpdate", roomID, streamListArray);
+		}
+		
+		@Override
+		public void onPublisherStateUpdate(String streamID, ZegoPublisherState state, int errorCode, org.json.JSONObject extendedData) {
+		    super.onPublisherStateUpdate(streamID, state, errorCode, extendedData);
+		    sendEvent("publisherStateUpdate", streamID, state.value(), errorCode, JSONObject.parse(extendedData.toString()));
+		}
+		
+		@Override
+		public void onPublisherQualityUpdate(String streamID, ZegoPublishStreamQuality quality) {
+		    super.onPublisherQualityUpdate(streamID, quality);
+		
+		    JSONObject qualityMap = new JSONObject();
+		    qualityMap.put("videoCaptureFPS", quality.videoCaptureFPS);
+		    qualityMap.put("videoEncodeFPS", quality.videoEncodeFPS);
+		    qualityMap.put("videoSendFPS", quality.videoSendFPS);
+		    qualityMap.put("videoKBPS", quality.videoKBPS);
+		    qualityMap.put("audioCaptureFPS", quality.audioCaptureFPS);
+		    qualityMap.put("audioSendFPS", quality.audioSendFPS);
+		    qualityMap.put("audioKBPS", quality.audioKBPS);
+		    qualityMap.put("rtt", quality.rtt);
+		    qualityMap.put("packetLostRate", quality.packetLostRate);
+		    qualityMap.put("level", quality.level.value());
+		    qualityMap.put("isHardwareEncode", quality.isHardwareEncode);
+		    qualityMap.put("videoCodecID", quality.videoCodecID.value());
+		    qualityMap.put("totalSendBytes", quality.totalSendBytes);
+		    qualityMap.put("audioSendBytes", quality.audioSendBytes);
+		    qualityMap.put("videoSendBytes", quality.videoSendBytes);
+		
+		    sendEvent("publisherQualityUpdate", streamID, qualityMap);
+		}
+		
+		@Override
+		public void onPublisherCapturedAudioFirstFrame() {
+		    super.onPublisherCapturedAudioFirstFrame();
+		
+		    JSONObject args = new JSONObject();
+		    sendEvent("publisherCapturedAudioFirstFrame", args);
+		}
+		
+		@Override
+		public void onPublisherCapturedVideoFirstFrame(ZegoPublishChannel channel) {
+		    super.onPublisherCapturedVideoFirstFrame(channel);
+		
+		    sendEvent("publisherCapturedVideoFirstFrame", channel.value());
+		}
+		
+		@Override
+		public void onPublisherVideoSizeChanged(int width, int height, ZegoPublishChannel channel) {
+		    super.onPublisherVideoSizeChanged(width, height, channel);
+		    sendEvent("publisherVideoSizeChanged", width, height, channel.value());
+		}
+		
+		@Override
+		public void onPlayerStateUpdate(String streamID, ZegoPlayerState state, int errorCode, org.json.JSONObject extendedData) {
+		    super.onPlayerStateUpdate(streamID, state, errorCode, extendedData);
+		    sendEvent("playerStateUpdate", streamID, state.value(), errorCode, JSONObject.parse(extendedData.toString()));
+		}
+		
+		@Override
+		public void onPlayerQualityUpdate(String streamID, ZegoPlayStreamQuality quality) {
+		    super.onPlayerQualityUpdate(streamID, quality);
+		
+		    JSONObject qualityMap = new JSONObject();
+		    qualityMap.put("videoRecvFPS", quality.videoRecvFPS);
+		    qualityMap.put("videoDejitterFPS", quality.videoDejitterFPS);
+		    qualityMap.put("videoDecodeFPS", quality.videoDecodeFPS);
+		    qualityMap.put("videoRenderFPS", quality.videoRenderFPS);
+		    qualityMap.put("videoKBPS", quality.videoKBPS);
+		    qualityMap.put("videoBreakRate", quality.videoBreakRate);
+		    qualityMap.put("audioRecvFPS", quality.audioRecvFPS);
+		    qualityMap.put("audioDejitterFPS", quality.audioDejitterFPS);
+		    qualityMap.put("audioDecodeFPS", quality.audioDecodeFPS);
+		    qualityMap.put("audioRenderFPS", quality.audioRenderFPS);
+		    qualityMap.put("audioKBPS", quality.audioKBPS);
+		    qualityMap.put("audioBreakRate", quality.audioBreakRate);
+		    qualityMap.put("rtt", quality.rtt);
+		    qualityMap.put("packetLostRate", quality.packetLostRate);
+		    qualityMap.put("peerToPeerPacketLostRate", quality.peerToPeerPacketLostRate);
+		    qualityMap.put("peerToPeerDelay", quality.peerToPeerDelay);
+		    qualityMap.put("level", quality.level.value());
+		    qualityMap.put("delay", quality.delay);
+		    qualityMap.put("avTimestampDiff", quality.avTimestampDiff);
+		    qualityMap.put("isHardwareDecode", quality.isHardwareDecode);
+		    qualityMap.put("videoCodecID", quality.videoCodecID.value());
+		    qualityMap.put("totalRecvBytes", quality.totalRecvBytes);
+		    qualityMap.put("audioRecvBytes", quality.audioRecvBytes);
+		    qualityMap.put("videoRecvBytes", quality.videoRecvBytes);
+		
+		    sendEvent("playerQualityUpdate", streamID, qualityMap);
+		}
+		
+		@Override
+		public void onPlayerMediaEvent(String streamID, ZegoPlayerMediaEvent event) {
+		    super.onPlayerMediaEvent(streamID, event);
+		
+		    sendEvent("playerMediaEvent", streamID, event.value());
+		}
+		
+		@Override
+		public void onPlayerRecvAudioFirstFrame(String streamID) {
+		    super.onPlayerRecvAudioFirstFrame(streamID);
+		    sendEvent("playerRecvAudioFirstFrame", streamID);
+		}
+		
+		@Override
+		public void onPlayerRecvVideoFirstFrame(String streamID) {
+		    super.onPlayerRecvVideoFirstFrame(streamID);
+		    sendEvent("playerRecvVideoFirstFrame", streamID);
+		}
+		
+		@Override
+		public void onPlayerRenderVideoFirstFrame(String streamID) {
+		    super.onPlayerRenderVideoFirstFrame(streamID);
+		    sendEvent("playerRenderVideoFirstFrame", streamID);
+		}
+		
+		@Override
+		public void onPlayerVideoSizeChanged(String streamID, int width, int height) {
+		    super.onPlayerVideoSizeChanged(streamID, width, height);
+		    sendEvent("playerVideoSizeChanged", streamID, width, height);
+		}
+		
+		@Override
+		public void onMixerRelayCDNStateUpdate(String taskID, ArrayList<ZegoStreamRelayCDNInfo> infoList) {
+		    super.onMixerRelayCDNStateUpdate(taskID, infoList);
+		    JSONArray infoArray = new JSONArray();
+		    for (ZegoStreamRelayCDNInfo info : infoList) {
+		        JSONObject infoMap = new JSONObject();
+		        infoMap.put("url", info.url);
+		        infoMap.put("state", info.state.value());
+		        infoMap.put("stateTime", info.stateTime);
+		        infoMap.put("updateReason", info.updateReason.value());
+		
+		        infoArray.add(infoMap);
+		    }
+		    sendEvent("mixerRelayCDNStateUpdate", taskID, infoArray);
+		}
+		
+		@Override
+		public void onMixerSoundLevelUpdate(HashMap<Integer, Float> soundLevels) {
+		    super.onMixerSoundLevelUpdate(soundLevels);
+		    sendEvent("mixerSoundLevelUpdate", soundLevels);
+		}
+		
+		@Override
+		public void onCapturedSoundLevelUpdate(float soundLevel) {
+		    super.onCapturedSoundLevelUpdate(soundLevel);
+		    sendEvent("capturedSoundLevelUpdate", soundLevel);
+		}
+		
+		@Override
+		public void onRemoteSoundLevelUpdate(HashMap<String, Float> soundLevels) {
+		    super.onRemoteSoundLevelUpdate(soundLevels);
+		
+		    JSONObject soundLevelsMap = new JSONObject();
+		    for(Map.Entry<String, Float> entry: soundLevels.entrySet()) {
+		        soundLevelsMap.put(entry.getKey(), entry.getValue());
+		    }
+		    sendEvent("remoteSoundLevelUpdate", soundLevelsMap);
+		}
+		
+		@Override
+		public void onDeviceError(int errorCode, String deviceName) {
+		    super.onDeviceError(errorCode, deviceName);
+		    sendEvent("deviceError", errorCode, deviceName);
+		}
+		
+		@Override
+		public void onRemoteCameraStateUpdate(String streamID, ZegoRemoteDeviceState state) {
+		    super.onRemoteCameraStateUpdate(streamID, state);
+		    sendEvent("remoteCameraStateUpdate", streamID, state.value());
+		}
+		
+		@Override
+		public void onRemoteMicStateUpdate(String streamID, ZegoRemoteDeviceState state) {
+		    super.onRemoteMicStateUpdate(streamID, state);
+		    sendEvent("remoteMicStateUpdate", streamID, state.value());
+		}
+		
+		@Override
+		public void onIMRecvBroadcastMessage(String roomID, ArrayList<ZegoBroadcastMessageInfo> messageList) {
+		    super.onIMRecvBroadcastMessage(roomID, messageList);
+		    JSONArray messageInfoArray = new JSONArray();
+		    for (ZegoBroadcastMessageInfo info : messageList) {
+		        JSONObject infoMap = new JSONObject();
+		        infoMap.put("message", info.message);
+		        infoMap.put("messageID", info.messageID);
+		        infoMap.put("sendTime", info.sendTime);
+		
+		        ZegoUser fromUser = info.fromUser;
+		        JSONObject userMap = new JSONObject();
+		        userMap.put("userID", fromUser.userID);
+		        userMap.put("userName", fromUser.userName);
+		        infoMap.put("fromUser", userMap);
+		
+		        messageInfoArray.add(infoMap);
+		    }
+		
+		    sendEvent("IMRecvBroadcastMessage", roomID, messageInfoArray);
+		}
+		
+		@Override
+		public void onIMRecvBarrageMessage(String roomID, ArrayList<ZegoBarrageMessageInfo> messageList) {
+		    super.onIMRecvBarrageMessage(roomID, messageList);
+		
+		    JSONArray messageInfoArray = new JSONArray();
+		    for (ZegoBarrageMessageInfo info : messageList) {
+		        JSONObject infoMap = new JSONObject();
+		        infoMap.put("message", info.message);
+		        infoMap.put("messageID", info.messageID);
+		        infoMap.put("sendTime", info.sendTime);
+		
+		        ZegoUser fromUser = info.fromUser;
+		        JSONObject userMap = new JSONObject();
+		        userMap.put("userID", fromUser.userID);
+		        userMap.put("userName", fromUser.userName);
+		        infoMap.put("fromUser", userMap);
+		
+		        messageInfoArray.add(infoMap);
+		    }
+		
+		    sendEvent("IMRecvBarrageMessage", roomID, messageInfoArray);
+		}
+		
+		@Override
+		public void onIMRecvCustomCommand(String roomID, ZegoUser fromUser, String command) {
+		    super.onIMRecvCustomCommand(roomID, fromUser, command);
+		    JSONObject userMap = new JSONObject();
+		    userMap.put("userID", fromUser.userID);
+		    userMap.put("userName", fromUser.userName);
+		
+		    sendEvent("IMRecvCustomCommand", roomID, userMap, command);
+		}
+	};
+	
 
     @SuppressWarnings("unused")
     public void destroyEngine(final JSCallback callback) {

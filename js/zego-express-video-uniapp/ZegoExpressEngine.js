@@ -24,6 +24,14 @@ import {
 
 export default class ZegoExpressEngine {
 
+	static createEngineWithProfile(profile) {
+		if (ZegoExpressEngine.instance == null) {
+			ZegoExpressEngine.instance = new ZegoExpressEngine();
+			ZegoExpressEngineImpl.createEngineWithProfile(profile);
+		}
+		return ZegoExpressEngine.instance;
+	}
+
 	/**
 	 * @param  {Number} appID
 	 * @param  {String} appSign

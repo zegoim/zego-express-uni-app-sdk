@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 50;
+	objectVersion = 52;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -12,9 +12,9 @@
 		861ED58725772E15003F12A6 /* ZegoExpressUniAppViewStore.m in Sources */ = {isa = PBXBuildFile; fileRef = 861ED58525772E15003F12A6 /* ZegoExpressUniAppViewStore.m */; };
 		861ED5B3257DD9EE003F12A6 /* ZegoPreviewView.h in Headers */ = {isa = PBXBuildFile; fileRef = 861ED5B1257DD9EE003F12A6 /* ZegoPreviewView.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		861ED5B4257DD9EE003F12A6 /* ZegoPreviewView.m in Sources */ = {isa = PBXBuildFile; fileRef = 861ED5B2257DD9EE003F12A6 /* ZegoPreviewView.m */; };
-		861F1EC726F1CFEC00304FBA /* ZegoExpressEngine.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 861F1EC626F1CFEC00304FBA /* ZegoExpressEngine.framework */; };
 		861F1ECA26F34B6700304FBA /* ZegoLog.h in Headers */ = {isa = PBXBuildFile; fileRef = 861F1EC826F34B6700304FBA /* ZegoLog.h */; };
 		861F1ECB26F34B6700304FBA /* ZegoLog.m in Sources */ = {isa = PBXBuildFile; fileRef = 861F1EC926F34B6700304FBA /* ZegoLog.m */; };
+		8671E46327464E020067A14D /* ZegoExpressEngine.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8671E46227464E020067A14D /* ZegoExpressEngine.xcframework */; };
 		8676BE32266D174E008112ED /* ZegoMediaPlayerView.h in Headers */ = {isa = PBXBuildFile; fileRef = 8676BE30266D174E008112ED /* ZegoMediaPlayerView.h */; };
 		8676BE33266D174E008112ED /* ZegoMediaPlayerView.m in Sources */ = {isa = PBXBuildFile; fileRef = 8676BE31266D174E008112ED /* ZegoMediaPlayerView.m */; };
 		86E7D5632668D6E3001E5143 /* ZegoPublishPreview.h in Headers */ = {isa = PBXBuildFile; fileRef = 86E7D5612668D6E3001E5143 /* ZegoPublishPreview.h */; };
@@ -33,9 +33,9 @@
 		861ED58525772E15003F12A6 /* ZegoExpressUniAppViewStore.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ZegoExpressUniAppViewStore.m; sourceTree = "<group>"; };
 		861ED5B1257DD9EE003F12A6 /* ZegoPreviewView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ZegoPreviewView.h; sourceTree = "<group>"; };
 		861ED5B2257DD9EE003F12A6 /* ZegoPreviewView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ZegoPreviewView.m; sourceTree = "<group>"; };
-		861F1EC626F1CFEC00304FBA /* ZegoExpressEngine.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = ZegoExpressEngine.framework; sourceTree = "<group>"; };
 		861F1EC826F34B6700304FBA /* ZegoLog.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ZegoLog.h; sourceTree = "<group>"; };
 		861F1EC926F34B6700304FBA /* ZegoLog.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ZegoLog.m; sourceTree = "<group>"; };
+		8671E46227464E020067A14D /* ZegoExpressEngine.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = ZegoExpressEngine.xcframework; path = "../../../uniapp/latest/3.1.13/3.1.13/iOSSDK@3.1.13.80426_20210514/HBuilder-uniPluginDemo/ZegoExpressEngine.xcframework"; sourceTree = "<group>"; };
 		8676BE30266D174E008112ED /* ZegoMediaPlayerView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ZegoMediaPlayerView.h; sourceTree = "<group>"; };
 		8676BE31266D174E008112ED /* ZegoMediaPlayerView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ZegoMediaPlayerView.m; sourceTree = "<group>"; };
 		86E7D5612668D6E3001E5143 /* ZegoPublishPreview.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ZegoPublishPreview.h; sourceTree = "<group>"; };
@@ -55,19 +55,27 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				861F1EC726F1CFEC00304FBA /* ZegoExpressEngine.framework in Frameworks */,
+				8671E46327464E020067A14D /* ZegoExpressEngine.xcframework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		8671E46127464E010067A14D /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				8671E46227464E020067A14D /* ZegoExpressEngine.xcframework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		86F76E2B255A832A00E390FD = {
 			isa = PBXGroup;
 			children = (
-				861F1EC626F1CFEC00304FBA /* ZegoExpressEngine.framework */,
 				86F76E37255A832A00E390FD /* ZegoExpressUniAppSDK */,
 				86F76E36255A832A00E390FD /* Products */,
+				8671E46127464E010067A14D /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};

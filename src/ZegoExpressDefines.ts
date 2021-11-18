@@ -1050,6 +1050,18 @@ export interface ZegoCustomAudioConfig {
     sourceType: ZegoAudioSourceType
 }
 
+/// Profile for create engine
+export interface ZegoEngineProfile {
+	
+	/// Application ID issued by ZEGO for developers, please apply from the ZEGO Admin Console https://console-express.zego.im The value ranges from 0 to 4294967295.
+	appID: number
+	
+	/// Application signature for each AppID, please apply from the ZEGO Admin Console. Application signature is a 64 character string. Each character has a range of '0' ~ '9', 'a' ~ 'z'.
+	appSign: string
+	
+	/// The application scenario. Developers can choose one of ZegoScenario based on the scenario of the app they are developing, and the engine will preset a more general setting for specific scenarios based on the set scenario. After setting specific scenarios, developers can still call specific functions to set specific parameters if they have customized parameter settings.
+	scenario: ZegoScenario
+}
 
 /// Advanced engine configuration.
 export interface ZegoEngineConfig {
